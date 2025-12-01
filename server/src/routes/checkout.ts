@@ -5,7 +5,7 @@
 
 import { Router, Request, Response } from 'express';
 import Stripe from 'stripe';
-import { StripeCheckoutSessionParams } from '../types';
+import { StripeCheckoutSessionParams } from '../types/index.js';
 
 const router = Router();
 

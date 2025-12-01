@@ -6,9 +6,9 @@
 import express from 'express';
 import cors from 'cors';
 import { config } from 'dotenv';
-import { checkoutRoutes } from './routes/checkout';
-import { portalRoutes } from './routes/portal';
-import { webhookRoutes } from './routes/webhooks';
+import { checkoutRoutes } from './routes/checkout.js';
+import { portalRoutes } from './routes/portal.js';
+import { webhookRoutes } from './routes/webhooks.js';
 
 // Load environment variables
 config();

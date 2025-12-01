@@ -5,7 +5,7 @@
 
 import { Router, Request, Response } from 'express';
 import Stripe from 'stripe';
-import { StripePortalSessionParams } from '../types';
+import { StripePortalSessionParams } from '../types/index.js';
 
 const router = Router();
 
