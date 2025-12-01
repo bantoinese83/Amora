@@ -56,6 +56,25 @@ router.post('/create-portal-session', async (req: Request, res: Response) => {
 
     if (!customer) {
       console.error('Customer not found:', { userId, customerId, customerEmail, stripeCustomerId });
+      
+      // If user is marked as premium but has no Stripe customer, they need to subscribe
+      if (userId) {
+        try {
+          const { userRepository } = await import(
+            '../../../shared/dist/src/repositories/userRepository.js'
+          );
+          const user = await userRepository.getUserById(userId);
+          if (user?.is_premium && !user.stripe_customer_id) {
+            return res.status(400).json({
+              error: 'No active subscription found. Please subscribe to Amora Premium to manage your subscription.',
+              needsSubscription: true,
+            });
+          }
+        } catch (error) {
+          console.warn('Failed to check user premium status:', error);
+        }
+      }
+      
       return res.status(404).json({
         error: 'Customer not found. Please ensure you have an active subscription. If you recently subscribed, please wait a moment and try again.',
       });

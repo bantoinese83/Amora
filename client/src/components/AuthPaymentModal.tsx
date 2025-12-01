@@ -280,8 +280,11 @@ export const AuthPaymentModal: React.FC = () => {
       resetPin();
       authInProgress.current = false;
       checkingEmailRef.current = false;
+    } else if (authState.isAuthenticated && !isPremium) {
+      // If modal opens for authenticated non-premium user, show payment checkout directly
+      // Don't reset mode/email since user is already logged in
     }
-  }, [modals.auth, resetPin]);
+  }, [modals.auth, resetPin, authState.isAuthenticated, isPremium]);
 
   // Auto-focus email input on mount
   useEffect(() => {
@@ -502,6 +505,16 @@ export const AuthPaymentModal: React.FC = () => {
             </button>
           </div>
         )
+      ) : shouldShowPayment ? (
+        // Authenticated but NOT Premium - Show payment checkout
+        <PaymentCheckout
+          onCancel={() => {
+            // Close modal when canceling payment
+            closeModal('auth');
+          }}
+          customerEmail={authState.user?.email}
+          userId={authState.user?.id}
+        />
       ) : isPremium ? (
         // Authenticated and Premium - Show subscription management
         <div className="text-center">
@@ -553,10 +566,17 @@ export const AuthPaymentModal: React.FC = () => {
                 const errorMessage = error instanceof Error ? error.message : 'Unknown error';
                 
                 // Provide more specific error messages
-                if (errorMessage.includes('Customer not found')) {
-                  alert(
-                    'No active subscription found. Please subscribe to Amora Premium first to manage your subscription.'
-                  );
+                if (errorMessage.includes('Customer not found') || errorMessage.includes('No active subscription')) {
+                  // If user needs subscription, show payment checkout instead
+                  if (errorMessage.includes('needsSubscription') || !isPremium) {
+                    // Close portal modal and show payment checkout
+                    setShowPayment(true);
+                    setMode('payment');
+                  } else {
+                    alert(
+                      'No active subscription found. Please subscribe to Amora Premium first to manage your subscription.'
+                    );
+                  }
                 } else if (errorMessage.includes('404') || errorMessage.includes('not found')) {
                   alert(
                     'Subscription not found. If you recently subscribed, please wait a moment and try again.'
@@ -576,17 +596,7 @@ export const AuthPaymentModal: React.FC = () => {
             {isLoadingPortal ? 'Opening...' : 'Manage Subscription'}
           </Button>
         </div>
-      ) : (
-        // Authenticated but NOT Premium - Show payment checkout
-        <PaymentCheckout
-          onCancel={() => {
-            // Close modal when canceling payment
-            closeModal('auth');
-          }}
-          customerEmail={authState.user?.email}
-          userId={authState.user?.id}
-        />
-      )}
+      ) : null}
     </Modal>
   );
 };
