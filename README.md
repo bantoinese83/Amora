@@ -30,7 +30,7 @@ Amora is a sophisticated voice-powered AI companion application designed to faci
 - **Session History**: Comprehensive archive with full transcripts, audio playback, and analysis summaries
 
 #### User Experience
-- **Secure Authentication**: PIN-based access with encrypted local storage
+- **Secure Authentication**: Email + PIN authentication with bcrypt hashing and Neon PostgreSQL database
 - **Premium Subscriptions**: Full Stripe integration for subscription management
 - **Quick Actions Menu**: Command palette (Cmd+K/Ctrl+K) for efficient navigation
 - **Auto-retry Logic**: Intelligent reconnection with exponential backoff on connection errors
@@ -69,17 +69,38 @@ Amora is a sophisticated voice-powered AI companion application designed to faci
 
 3. **Set up environment variables**
    
-   Create a `.env` file in the root directory:
+   **Client** (`.env.local` in `client/` directory):
    ```env
    # Required: Google Gemini API Key
    GEMINI_API_KEY=your_gemini_api_key_here
 
-   # Optional: Stripe Configuration (for payments)
-   VITE_STRIPE_PUBLISHABLE_KEY=pk_test_...
+   # Required: Neon Database Connection String
+   VITE_NEON_DATABASE_URL=postgresql://user:password@host/database?sslmode=require
+
+   # Stripe Configuration (for payments)
+   VITE_STRIPE_PUBLISHABLE_KEY=pk_live_...
    VITE_STRIPE_PRICE_ID_MONTHLY=price_...
    VITE_STRIPE_PRICE_ID_YEARLY=price_...
-   VITE_BACKEND_URL=http://localhost:3001
+   VITE_BACKEND_URL=https://amora-server-production.up.railway.app
    ```
+   
+   **Server** (`.env` in `server/` directory):
+   ```env
+   # Stripe Configuration
+   STRIPE_SECRET_KEY=sk_live_...
+   STRIPE_PRICE_ID_MONTHLY=price_...
+   STRIPE_PRICE_ID_YEARLY=price_...
+   STRIPE_WEBHOOK_SECRET=whsec_...
+
+   # Database
+   NEON_DATABASE_URL=postgresql://user:password@host/database?sslmode=require
+
+   # Server Configuration
+   NODE_ENV=production
+   PORT=3001
+   ```
+   
+   **Note**: See `DEPLOYMENT_COMPLETE.md` for production deployment details.
 
 4. **Run the development server**
    ```bash
@@ -137,75 +158,36 @@ Amora includes comprehensive Stripe integration for subscription management and 
    VITE_BACKEND_URL=http://localhost:3001
    ```
 
-### Backend Server Requirements
+### Backend Server
 
-A backend server is required to securely handle Stripe operations. The frontend communicates with your backend to create checkout and portal sessions.
+The backend server is included in this repository and handles Stripe operations securely.
 
-**Required API Endpoints:**
+**Server Endpoints:**
 
 - `POST /api/create-checkout-session` - Creates Stripe Checkout session
 - `POST /api/create-portal-session` - Creates Stripe Customer Portal session
+- `POST /api/webhooks/stripe` - Handles Stripe webhook events
+- `GET /health` - Health check endpoint
 
-**Example Implementation (Node.js/Express):**
+**Running the Server:**
 
-```javascript
-const express = require('express');
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-const cors = require('cors');
+```bash
+# Development
+cd server
+npm run dev
 
-const app = express();
-app.use(cors());
-app.use(express.json());
-
-// Create checkout session
-app.post('/api/create-checkout-session', async (req, res) => {
-  try {
-    const { priceId, successUrl, cancelUrl, customerEmail } = req.body;
-    
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      line_items: [{ price: priceId, quantity: 1 }],
-      mode: 'subscription',
-      success_url: successUrl,
-      cancel_url: cancelUrl,
-      customer_email: customerEmail,
-    });
-    
-    res.json({ sessionId: session.id, url: session.url });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Create portal session
-app.post('/api/create-portal-session', async (req, res) => {
-  try {
-    const { returnUrl, customerEmail } = req.body;
-    
-    const customers = await stripe.customers.list({
-      email: customerEmail,
-      limit: 1,
-    });
-    
-    if (!customers.data[0]) {
-      return res.status(404).json({ error: 'No subscription found' });
-    }
-    
-    const session = await stripe.billingPortal.sessions.create({
-      customer: customers.data[0].id,
-      return_url: returnUrl,
-    });
-    
-    res.json({ url: session.url });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-app.listen(3001, () => {
-  console.log('Backend server running on http://localhost:3001');
-});
+# Production
+npm run build
+npm start
 ```
+
+**Production Deployment:**
+
+- **Server**: Deployed to Railway at `https://amora-server-production.up.railway.app`
+- **Client**: Deployed to Vercel at `https://amora-mu.vercel.app`
+- **Webhooks**: Configured in Stripe Dashboard for production
+
+See `DEPLOYMENT_COMPLETE.md` for full deployment details.
 
 ### Testing Payments
 
@@ -220,22 +202,26 @@ Use Stripe's test mode with the following test card:
 ### Project Structure
 
 ```
-src/
-├── components/          # React UI components
-│   ├── common/         # Reusable UI primitives (Button, Card, Modal, etc.)
-│   └── ...             # Feature-specific components
-├── context/            # React Context providers (AppContext)
-├── hooks/              # Custom React hooks (business logic)
-├── repositories/       # Data access layer (localStorage abstraction)
-│   ├── sessionRepository.ts
-│   ├── preferencesRepository.ts
-│   └── storageRepository.ts
-├── services/           # Business logic and external API integration
-│   ├── liveClient.ts           # Gemini Live API client
-│   ├── analysisService.ts      # AI-powered session analysis
-│   └── stripeService.ts        # Payment processing
-├── utils/              # Utility functions and helpers
-└── types.ts            # TypeScript type definitions
+amora---voice-ai/
+├── client/             # Frontend React application
+│   ├── src/
+│   │   ├── components/ # React UI components
+│   │   ├── context/    # React Context providers
+│   │   ├── hooks/      # Custom React hooks
+│   │   ├── services/   # Business logic and API integration
+│   │   └── utils/      # Utility functions
+│   └── package.json
+├── server/             # Backend Express server
+│   ├── src/
+│   │   ├── routes/     # API route handlers
+│   │   └── services/   # Server-side services
+│   └── package.json
+├── shared/             # Shared code between client and server
+│   └── src/
+│       ├── repositories/ # Data access layer (Neon database)
+│       ├── services/     # Shared services
+│       └── types/        # TypeScript type definitions
+└── package.json        # Root workspace configuration
 ```
 
 ### Design Patterns
@@ -251,8 +237,10 @@ src/
 
 ### Authentication & Data Protection
 
-- **PIN Authentication**: Secure 4-digit PIN for application access
-- **Local Storage Encryption**: Session data encrypted and stored locally in the browser
+- **Email + PIN Authentication**: Secure authentication with email and 4-6 digit PIN
+- **bcrypt Hashing**: PINs are hashed using bcrypt (10 rounds) before storage
+- **Production Database**: All data persisted in Neon PostgreSQL with SSL/TLS encryption
+- **Session Management**: User sessions stored securely in database with automatic cleanup
 - **No Sensitive Data Exposure**: API keys and secrets never exposed in frontend code
 - **PCI Compliance**: Stripe handles all payment processing with PCI-DSS compliance
 

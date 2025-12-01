@@ -1,0 +1,42 @@
+#!/bin/bash
+
+# Manual commands to create recurring subscription prices
+# Run these commands one by one in your terminal
+
+PRODUCT_ID="prod_TWcmey3pVuDZE2"
+
+echo "Creating recurring subscription prices for Amora Premium..."
+echo ""
+echo "Product ID: $PRODUCT_ID"
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "Step 1: Create Monthly Recurring Price ($9.99/month)"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+echo "Run this command:"
+echo ""
+echo "stripe prices create \\"
+echo "  --product=\"$PRODUCT_ID\" \\"
+echo "  --unit-amount=999 \\"
+echo "  --currency=usd \\"
+echo "  --recurring[interval]=month"
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "Step 2: Create Yearly Recurring Price ($99.99/year)"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+echo "Run this command:"
+echo ""
+echo "stripe prices create \\"
+echo "  --product=\"$PRODUCT_ID\" \\"
+echo "  --unit-amount=9999 \\"
+echo "  --currency=usd \\"
+echo "  --recurring[interval]=year"
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "After running both commands, copy the price IDs and add them to your .env files:"
+echo ""
+echo "VITE_STRIPE_PRICE_ID_MONTHLY=price_..."
+echo "VITE_STRIPE_PRICE_ID_YEARLY=price_..."
+echo ""
+
