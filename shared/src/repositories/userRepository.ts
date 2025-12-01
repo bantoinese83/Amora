@@ -415,8 +415,8 @@ class UserRepository {
    */
   async updateStripeInfo(
     userId: string,
-    customerId: string | null,
-    subscriptionId: string | null,
+    customerId: string | null | undefined,
+    subscriptionId: string | null | undefined,
     isPremium: boolean
   ): Promise<void> {
     if (!userId) {
