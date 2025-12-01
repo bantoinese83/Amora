@@ -581,7 +581,6 @@ export const AuthPaymentModal: React.FC = () => {
         <PaymentCheckout
           onCancel={() => {
             // Close modal when canceling payment
-            const { closeModal } = useApp();
             closeModal('auth');
           }}
           customerEmail={authState.user?.email}
