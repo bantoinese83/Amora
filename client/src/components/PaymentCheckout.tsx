@@ -12,9 +12,14 @@ import {
 interface PaymentCheckoutProps {
   onCancel: () => void;
   customerEmail?: string;
+  userId?: string;
 }
 
-export const PaymentCheckout: React.FC<PaymentCheckoutProps> = ({ onCancel, customerEmail }) => {
+export const PaymentCheckout: React.FC<PaymentCheckoutProps> = ({
+  onCancel,
+  customerEmail,
+  userId,
+}) => {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'yearly'>('monthly');
   const [error, setError] = useState<string | null>(null);
@@ -37,6 +42,7 @@ export const PaymentCheckout: React.FC<PaymentCheckoutProps> = ({ onCancel, cust
         successUrl,
         cancelUrl,
         ...(customerEmail && customerEmail.trim() !== '' ? { customerEmail } : {}),
+        ...(userId ? { userId } : {}),
       } as CreateCheckoutSessionParams;
       const session = await createCheckoutSession(params);
 

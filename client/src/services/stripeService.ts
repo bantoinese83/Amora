@@ -39,6 +39,7 @@ export interface CreateCheckoutSessionParams {
   successUrl: string;
   cancelUrl: string;
   customerEmail?: string;
+  userId?: string;
 }
 
 /**
@@ -134,6 +135,7 @@ export interface CreatePortalSessionParams {
   returnUrl: string;
   customerId?: string;
   customerEmail?: string;
+  userId?: string;
 }
 
 /**

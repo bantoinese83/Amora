@@ -12,6 +12,8 @@ export interface User {
   email: string;
   name: string;
   is_premium: boolean;
+  stripe_customer_id?: string | null;
+  stripe_subscription_id?: string | null;
   created_at: Date;
   updated_at: Date;
 }
@@ -111,9 +113,9 @@ class UserRepository {
     try {
       // Insert user
       const userResult = await executeQueryOne<User>(
-        `INSERT INTO users (email, pin_hash, name, is_premium)
-         VALUES ($1, $2, $3, $4)
-         RETURNING id, email, name, is_premium, created_at, updated_at`,
+        `INSERT INTO users (email, pin_hash, name, is_premium, stripe_customer_id, stripe_subscription_id)
+         VALUES ($1, $2, $3, $4, NULL, NULL)
+         RETURNING id, email, name, is_premium, stripe_customer_id, stripe_subscription_id, created_at, updated_at`,
         [normalizedEmail, pinHash, normalizedName, false]
       );
 
@@ -173,7 +175,7 @@ class UserRepository {
 
     try {
       const user = await executeQueryOne<User & { pin_hash: string }>(
-        `SELECT id, email, name, is_premium, pin_hash, created_at, updated_at
+        `SELECT id, email, name, is_premium, stripe_customer_id, stripe_subscription_id, pin_hash, created_at, updated_at
          FROM users
          WHERE email = $1`,
         [normalizedEmail]
@@ -223,7 +225,7 @@ class UserRepository {
 
     try {
       return executeQueryOne<User>(
-        `SELECT id, email, name, is_premium, created_at, updated_at
+        `SELECT id, email, name, is_premium, stripe_customer_id, stripe_subscription_id, created_at, updated_at
          FROM users
          WHERE id = $1`,
         [userId]
@@ -250,7 +252,7 @@ class UserRepository {
 
     try {
       const result = await executeQueryOne<UserWithPreferences>(
-        `SELECT u.id, u.email, u.name, u.is_premium, u.created_at, u.updated_at,
+        `SELECT u.id, u.email, u.name, u.is_premium, u.stripe_customer_id, u.stripe_subscription_id, u.created_at, u.updated_at,
                 COALESCE(up.selected_voice, 'Kore') as selected_voice
          FROM users u
          LEFT JOIN user_preferences up ON u.id = up.user_id
@@ -351,7 +353,7 @@ class UserRepository {
     try {
       const normalizedEmail = validateEmail(email);
       return await executeQueryOne<User>(
-        `SELECT id, email, name, is_premium, created_at, updated_at
+        `SELECT id, email, name, is_premium, stripe_customer_id, stripe_subscription_id, created_at, updated_at
          FROM users
          WHERE email = $1`,
         [normalizedEmail]
@@ -359,6 +361,84 @@ class UserRepository {
     } catch (error) {
       console.error('Failed to find user by email:', error);
       return null;
+    }
+  }
+
+  /**
+   * Update Stripe customer ID
+   */
+  async updateStripeCustomerId(userId: string, customerId: string | null): Promise<void> {
+    if (!userId) {
+      throw new Error('User ID is required');
+    }
+
+    validateUUID(userId, 'User ID');
+
+    try {
+      await executeQuery(`UPDATE users SET stripe_customer_id = $1 WHERE id = $2`, [
+        customerId,
+        userId,
+      ]);
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('not found')) {
+        throw new Error('User not found');
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Update Stripe subscription ID
+   */
+  async updateStripeSubscriptionId(userId: string, subscriptionId: string | null): Promise<void> {
+    if (!userId) {
+      throw new Error('User ID is required');
+    }
+
+    validateUUID(userId, 'User ID');
+
+    try {
+      await executeQuery(`UPDATE users SET stripe_subscription_id = $1 WHERE id = $2`, [
+        subscriptionId,
+        userId,
+      ]);
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('not found')) {
+        throw new Error('User not found');
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Update Stripe IDs and premium status together
+   */
+  async updateStripeInfo(
+    userId: string,
+    customerId: string | null,
+    subscriptionId: string | null,
+    isPremium: boolean
+  ): Promise<void> {
+    if (!userId) {
+      throw new Error('User ID is required');
+    }
+
+    validateUUID(userId, 'User ID');
+
+    if (typeof isPremium !== 'boolean') {
+      throw new Error('Premium status must be a boolean');
+    }
+
+    try {
+      await executeQuery(
+        `UPDATE users SET stripe_customer_id = $1, stripe_subscription_id = $2, is_premium = $3 WHERE id = $4`,
+        [customerId, subscriptionId, isPremium, userId]
+      );
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('not found')) {
+        throw new Error('User not found');
+      }
+      throw error;
     }
   }
 }

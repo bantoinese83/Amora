@@ -11,6 +11,7 @@ import { portalRoutes } from './routes/portal.js';
 import { webhookRoutes } from './routes/webhooks.js';
 import { authRoutes } from './routes/auth.js';
 import { sessionRoutes } from './routes/sessions.js';
+import { subscriptionRoutes } from './routes/subscription.js';
 
 // Load environment variables
 config();

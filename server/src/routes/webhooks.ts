@@ -93,10 +93,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   }
 
   const customerEmail = session.customer_email || session.metadata?.customer_email;
-  if (!customerEmail) {
-    console.warn('No customer email found in checkout session');
-    return;
-  }
+  const userId = session.metadata?.user_id;
 
   // Get customer to find user
   const customerId = typeof session.customer === 'string' ? session.customer : session.customer?.id;
@@ -114,9 +111,21 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 
   const subscription = await stripe.subscriptions.retrieve(subscriptionId);
   if (subscription.status === 'active' || subscription.status === 'trialing') {
-    // Update user premium status
-    await updatePremiumStatusByEmail(customerEmail, true);
-    console.log(`Premium activated for customer: ${customerEmail}`);
+    // Update user premium status and Stripe IDs
+    if (userId) {
+      // Update by user ID (preferred)
+      try {
+        await userRepository.updateStripeInfo(userId, customerId, subscriptionId, true);
+        console.log(`Premium activated for user: ${userId}, customer: ${customerId}`);
+      } catch (error) {
+        console.error(`Failed to update user ${userId}:`, error);
+        // Fallback to email lookup
+        await updatePremiumStatusByEmail(customerEmail, true, customerId, subscriptionId);
+      }
+    } else {
+      // Fallback to email lookup
+      await updatePremiumStatusByEmail(customerEmail, true, customerId, subscriptionId);
+    }
   }
 }
 
@@ -133,6 +142,7 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
 
   const customer = (await stripe.customers.retrieve(customerId)) as Stripe.Customer;
   const customerEmail = customer.email;
+  const userId = customer.metadata?.user_id;
 
   if (!customerEmail) {
     return;
@@ -140,10 +150,21 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
 
   const isActive = subscription.status === 'active' || subscription.status === 'trialing';
 
-  await updatePremiumStatusByEmail(customerEmail, isActive);
-  console.log(
-    `Subscription ${subscription.status} for customer: ${customerEmail}, Premium: ${isActive}`
-  );
+  // Update by user ID if available, otherwise by email
+  if (userId) {
+    try {
+      await userRepository.updateStripeInfo(userId, customerId, subscription.id, isActive);
+      console.log(
+        `Subscription ${subscription.status} for user: ${userId}, Premium: ${isActive}`
+      );
+    } catch (error) {
+      console.error(`Failed to update user ${userId}:`, error);
+      // Fallback to email lookup
+      await updatePremiumStatusByEmail(customerEmail, isActive, customerId, subscription.id);
+    }
+  } else {
+    await updatePremiumStatusByEmail(customerEmail, isActive, customerId, subscription.id);
+  }
 }
 
 /**
@@ -159,13 +180,24 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
 
   const customer = (await stripe.customers.retrieve(customerId)) as Stripe.Customer;
   const customerEmail = customer.email;
+  const userId = customer.metadata?.user_id;
 
   if (!customerEmail) {
     return;
   }
 
-  await updatePremiumStatusByEmail(customerEmail, false);
-  console.log(`Premium deactivated for customer: ${customerEmail}`);
+  // Update by user ID if available, otherwise by email
+  if (userId) {
+    try {
+      await userRepository.updateStripeInfo(userId, customerId, null, false);
+      console.log(`Premium deactivated for user: ${userId}`);
+    } catch (error) {
+      console.error(`Failed to update user ${userId}:`, error);
+      await updatePremiumStatusByEmail(customerEmail, false, customerId, null);
+    }
+  } else {
+    await updatePremiumStatusByEmail(customerEmail, false, customerId, null);
+  }
 }
 
 /**
@@ -180,14 +212,32 @@ async function handleInvoicePaid(invoice: Stripe.Invoice) {
 
   const customer = (await stripe.customers.retrieve(customerId)) as Stripe.Customer;
   const customerEmail = customer.email;
+  const userId = customer.metadata?.user_id;
 
   if (!customerEmail) {
     return;
   }
 
+  const subscriptionId =
+    typeof invoice.subscription === 'string' ? invoice.subscription : invoice.subscription?.id;
+
   // Ensure premium is active when invoice is paid
-  await updatePremiumStatusByEmail(customerEmail, true);
-  console.log(`Invoice paid, premium confirmed for: ${customerEmail}`);
+  if (userId) {
+    try {
+      await userRepository.updateStripeInfo(
+        userId,
+        customerId,
+        subscriptionId || null,
+        true
+      );
+      console.log(`Invoice paid, premium confirmed for user: ${userId}`);
+    } catch (error) {
+      console.error(`Failed to update user ${userId}:`, error);
+      await updatePremiumStatusByEmail(customerEmail, true, customerId, subscriptionId || undefined);
+    }
+  } else {
+    await updatePremiumStatusByEmail(customerEmail, true, customerId, subscriptionId || undefined);
+  }
 }
 
 /**
@@ -210,10 +260,20 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
 
     const customer = (await stripe.customers.retrieve(customerId)) as Stripe.Customer;
     const customerEmail = customer.email;
+    const userId = customer.metadata?.user_id;
 
     if (customerEmail) {
-      await updatePremiumStatusByEmail(customerEmail, isActive);
-      console.log(`Payment failed for ${customerEmail}, Premium status: ${isActive}`);
+      if (userId) {
+        try {
+          await userRepository.updateStripeInfo(userId, customerId, subscriptionId, isActive);
+          console.log(`Payment failed for user ${userId}, Premium status: ${isActive}`);
+        } catch (error) {
+          console.error(`Failed to update user ${userId}:`, error);
+          await updatePremiumStatusByEmail(customerEmail, isActive, customerId, subscriptionId);
+        }
+      } else {
+        await updatePremiumStatusByEmail(customerEmail, isActive, customerId, subscriptionId);
+      }
     }
   }
 }
@@ -221,12 +281,28 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
 /**
  * Update premium status by email
  */
-async function updatePremiumStatusByEmail(email: string, isPremium: boolean) {
+async function updatePremiumStatusByEmail(
+  email: string,
+  isPremium: boolean,
+  customerId?: string,
+  subscriptionId?: string
+) {
   try {
     const user = await userRepository.findByEmail(email);
 
     if (user) {
-      await userRepository.updatePremiumStatus(user.id, isPremium);
+      if (customerId || subscriptionId) {
+        // Update Stripe IDs and premium status together
+        await userRepository.updateStripeInfo(
+          user.id,
+          customerId || user.stripe_customer_id || null,
+          subscriptionId || user.stripe_subscription_id || null,
+          isPremium
+        );
+      } else {
+        // Just update premium status
+        await userRepository.updatePremiumStatus(user.id, isPremium);
+      }
       console.log(`Premium status updated: ${email} -> ${isPremium}`);
     } else {
       console.warn(`User not found for email: ${email}`);

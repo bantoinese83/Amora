@@ -196,16 +196,57 @@ export const AuthPaymentModal: React.FC = () => {
   // Check for payment status in URL (after Stripe redirect)
   useEffect(() => {
     const handlePaymentSuccess = async () => {
-      // Get user ID from localStorage (stored during login)
-      const userId = localStorage.getItem('amora_user_id');
-      if (userId) {
+      const userId = authState.user?.id;
+      const paymentStatus = checkPaymentStatus();
+      
+      if (!paymentStatus?.success || !paymentStatus.sessionId) {
+        return;
+      }
+
+      if (!userId) {
+        console.error('No user ID available for payment verification');
+        cleanupPaymentParams();
+        return;
+      }
+
+      try {
+        // Verify session with backend
+        const backendUrl = import.meta.env.VITE_BACKEND_URL || 'https://amora-server-production.up.railway.app';
+        const response = await fetch(`${backendUrl}/api/subscription/verify-session`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            sessionId: paymentStatus.sessionId,
+            userId,
+          }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.isActive) {
+            // Premium activated - reload to refresh auth state
+            cleanupPaymentParams();
+            window.location.reload();
+            return;
+          }
+        }
+
+        // Fallback: Update premium status directly
+        await updatePremiumStatus(userId, true);
+        cleanupPaymentParams();
+        window.location.reload();
+      } catch (error) {
+        console.error('Failed to verify payment session:', error);
+        // Fallback: Update premium status directly
         try {
-          // Update user premium status after successful payment
           await updatePremiumStatus(userId, true);
-          // Reload the page to refresh auth state with premium status
+          cleanupPaymentParams();
           window.location.reload();
-        } catch (error) {
-          console.error('Failed to update premium status after payment:', error);
+        } catch (fallbackError) {
+          console.error('Failed to update premium status after payment:', fallbackError);
+          cleanupPaymentParams();
         }
       }
     };
@@ -214,9 +255,8 @@ export const AuthPaymentModal: React.FC = () => {
       const paymentStatus = checkPaymentStatus();
       if (paymentStatus) {
         if (paymentStatus.success) {
-          // Payment successful - update premium status
+          // Payment successful - verify and update
           handlePaymentSuccess();
-          cleanupPaymentParams();
           setShowPayment(false);
         } else {
           // Payment failed or cancelled
@@ -227,7 +267,7 @@ export const AuthPaymentModal: React.FC = () => {
     } catch {
       // Payment status check failed, continue normally
     }
-  }, []);
+  }, [authState.user?.id]);
 
   // Reset form when modal opens/closes
   useEffect(() => {
@@ -261,7 +301,11 @@ export const AuthPaymentModal: React.FC = () => {
     <Modal isOpen={modals.auth} onClose={undefined}>
       {!authState.isAuthenticated ? (
         showPayment ? (
-          <PaymentCheckout onCancel={() => setShowPayment(false)} customerEmail={email} />
+          <PaymentCheckout
+            onCancel={() => setShowPayment(false)}
+            customerEmail={email || authState.user?.email}
+            userId={authState.user?.id}
+          />
         ) : mode === 'email' ? (
           <div className="text-center">
             <div className="w-16 h-16 bg-gradient-to-tr from-amora-500 to-pink-500 rounded-full mx-auto mb-4 flex items-center justify-center">
@@ -488,6 +532,7 @@ export const AuthPaymentModal: React.FC = () => {
                 const params = {
                   returnUrl,
                   ...(authState.user?.email ? { customerEmail: authState.user.email } : {}),
+                  ...(authState.user?.id ? { userId: authState.user.id } : {}),
                 } as Parameters<typeof createPortalSession>[0];
                 const portalSession = await createPortalSession(params);
 

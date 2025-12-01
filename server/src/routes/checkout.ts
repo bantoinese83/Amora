@@ -15,13 +15,55 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
 
 router.post('/create-checkout-session', async (req: Request, res: Response) => {
   try {
-    const { priceId, successUrl, cancelUrl, customerEmail } =
-      req.body as StripeCheckoutSessionParams;
+    const { priceId, successUrl, cancelUrl, customerEmail, userId } =
+      req.body as StripeCheckoutSessionParams & { userId?: string };
 
     if (!priceId || !successUrl || !cancelUrl) {
       return res.status(400).json({
         error: 'Missing required fields: priceId, successUrl, cancelUrl',
       });
+    }
+
+    // If user ID is provided, try to find or create Stripe customer
+    let customerId: string | undefined;
+    if (userId && customerEmail) {
+      try {
+        const { userRepository } = await import(
+          '../../../shared/dist/src/repositories/userRepository.js'
+        );
+        const user = await userRepository.getUserById(userId);
+        
+        if (user?.stripe_customer_id) {
+          // Use existing customer
+          customerId = user.stripe_customer_id;
+        } else if (customerEmail) {
+          // Create or retrieve Stripe customer
+          const customers = await stripe.customers.list({
+            email: customerEmail,
+            limit: 1,
+          });
+          
+          if (customers.data.length > 0) {
+            customerId = customers.data[0].id;
+            // Update user with customer ID
+            await userRepository.updateStripeCustomerId(userId, customerId);
+          } else {
+            // Create new Stripe customer
+            const customer = await stripe.customers.create({
+              email: customerEmail,
+              metadata: {
+                user_id: userId,
+              },
+            });
+            customerId = customer.id;
+            // Update user with customer ID
+            await userRepository.updateStripeCustomerId(userId, customerId);
+          }
+        }
+      } catch (error) {
+        console.warn('Failed to link Stripe customer:', error);
+        // Continue without customer ID - Stripe will create one
+      }
     }
 
     // Create checkout session with subscription mode
@@ -36,10 +78,12 @@ router.post('/create-checkout-session', async (req: Request, res: Response) => {
       mode: 'subscription', // Recurring subscription
       success_url: successUrl,
       cancel_url: cancelUrl,
-      customer_email: customerEmail,
+      customer: customerId, // Use existing customer if available
+      customer_email: customerId ? undefined : customerEmail, // Only set if no customer ID
       metadata: {
-        // Store user email in metadata for webhook processing
+        // Store user info in metadata for webhook processing
         customer_email: customerEmail || '',
+        user_id: userId || '',
       },
     });
 

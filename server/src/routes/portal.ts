@@ -15,16 +15,36 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
 
 router.post('/create-portal-session', async (req: Request, res: Response) => {
   try {
-    const { returnUrl, customerId, customerEmail } = req.body as StripePortalSessionParams;
+    const { returnUrl, customerId, customerEmail, userId } = req.body as StripePortalSessionParams & {
+      userId?: string;
+    };
 
     if (!returnUrl) {
       return res.status(400).json({ error: 'Missing required field: returnUrl' });
     }
 
     let customer: Stripe.Customer | null = null;
+    let stripeCustomerId: string | null = null;
+
+    // Try to get customer ID from user record first (preferred)
+    if (userId) {
+      try {
+        const { userRepository } = await import(
+          '../../../shared/dist/src/repositories/userRepository.js'
+        );
+        const user = await userRepository.getUserById(userId);
+        if (user?.stripe_customer_id) {
+          stripeCustomerId = user.stripe_customer_id;
+        }
+      } catch (error) {
+        console.warn('Failed to get user Stripe customer ID:', error);
+      }
+    }
 
     // Find customer by ID or email
-    if (customerId) {
+    if (stripeCustomerId) {
+      customer = (await stripe.customers.retrieve(stripeCustomerId)) as Stripe.Customer;
+    } else if (customerId) {
       customer = (await stripe.customers.retrieve(customerId)) as Stripe.Customer;
     } else if (customerEmail) {
       const customers = await stripe.customers.list({
