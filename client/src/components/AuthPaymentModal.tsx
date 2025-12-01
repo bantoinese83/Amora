@@ -269,6 +269,12 @@ export const AuthPaymentModal: React.FC = () => {
     }
   }, [authState.user?.id]);
 
+  // Determine if user is premium (must be defined before useEffects that use it)
+  const isPremium = authState.user?.isPremium || false;
+  
+  // If authenticated and not premium, show payment checkout directly
+  const shouldShowPayment = authState.isAuthenticated && !isPremium;
+
   // Reset form when modal opens/closes
   useEffect(() => {
     if (!modals.auth) {
@@ -299,9 +305,6 @@ export const AuthPaymentModal: React.FC = () => {
     }
     return undefined;
   }, [modals.auth, authState.isAuthenticated, mode, showPayment]);
-
-  // Determine if user is premium
-  const isPremium = authState.user?.isPremium || false;
 
   return (
     <Modal isOpen={modals.auth} onClose={undefined}>
