@@ -5,9 +5,9 @@ export class AnalysisService {
   private ai: GoogleGenAI;
 
   constructor() {
-    const apiKey = process.env.API_KEY;
+    const apiKey = import.meta.env.VITE_GEMINI_API_KEY || (process.env.API_KEY as string | undefined);
     if (!apiKey) {
-      throw new Error('API_KEY is required');
+      throw new Error('VITE_GEMINI_API_KEY is required. Please set it in your environment variables.');
     }
     this.ai = new GoogleGenAI({ apiKey });
   }

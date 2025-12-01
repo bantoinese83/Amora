@@ -10,6 +10,7 @@ import { checkoutRoutes } from './routes/checkout.js';
 import { portalRoutes } from './routes/portal.js';
 import { webhookRoutes } from './routes/webhooks.js';
 import { authRoutes } from './routes/auth.js';
+import { sessionRoutes } from './routes/sessions.js';
 
 // Load environment variables
 config();
@@ -33,6 +34,7 @@ app.use('/api/webhooks', webhookRoutes);
 app.use('/api', checkoutRoutes);
 app.use('/api', portalRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/sessions', sessionRoutes);
 
 // Health check
 app.get('/health', (_req, res) => {

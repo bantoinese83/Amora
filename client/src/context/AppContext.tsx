@@ -8,7 +8,7 @@ import React, {
   useRef,
 } from 'react';
 import { AuthState, Session, AudioChunk, MessageLog } from '../types';
-import { sessionRepository } from '@shared/repositories/sessionRepository';
+import { getSessions, createSession as createSessionAPI } from '../services/sessionService';
 import { preferencesRepository } from '@shared/repositories/preferencesRepository';
 import { getUser, type User } from '../services/authService';
 import { getSubscriptionLimits } from '@shared/services/subscriptionService';
@@ -161,7 +161,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     loadStoredUser();
   }, []);
 
-  // Load sessions from database
+  // Load sessions from API
   const loadSessions = useCallback(async (userId: string) => {
     if (!userId || userId.trim() === '') {
       setSessions([]);
@@ -170,7 +170,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
     setIsLoadingSessions(true);
     try {
-      const userSessions = await sessionRepository.getAll(userId);
+      const userSessions = await getSessions(userId);
       // Filter out any null sessions from mapping errors
       setSessions(userSessions.filter((s): s is Session => s !== null));
     } catch (error) {
@@ -337,7 +337,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       }
 
       try {
-        const newSession = await sessionRepository.createFromTranscript(
+        const newSession = await createSessionAPI(
           currentUserId,
           transcript,
           duration,
