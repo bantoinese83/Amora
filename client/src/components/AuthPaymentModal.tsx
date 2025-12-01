@@ -17,7 +17,7 @@ import {
 type AuthMode = 'email' | 'pin' | 'payment';
 
 export const AuthPaymentModal: React.FC = () => {
-  const { modals, login, authState, closeModal } = useApp();
+  const { modals, login, authState, closeModal, openModal } = useApp();
   const [mode, setMode] = useState<AuthMode>('email');
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
