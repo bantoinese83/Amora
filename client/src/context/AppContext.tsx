@@ -8,7 +8,7 @@ import React, {
   useRef,
 } from 'react';
 import { AuthState, Session, AudioChunk, MessageLog } from '../types';
-import { getSessions, createSession as createSessionAPI } from '../services/sessionService';
+import { getSessions, createSession as createSessionAPI, updateSession as updateSessionAPI } from '../services/sessionService';
 import { preferencesRepository } from '@shared/repositories/preferencesRepository';
 import { getUser, type User } from '../services/authService';
 import { getSubscriptionLimits } from '@shared/services/subscriptionService';
@@ -370,7 +370,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       }
 
       try {
-        const updated = await sessionRepository.update(currentUserId, id, updates);
+        const updated = await updateSessionAPI(currentUserId, id, updates);
         if (updated) {
           setSessions(prev => prev.map(s => (s.id === id ? updated : s)));
         }

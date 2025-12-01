@@ -7,8 +7,17 @@ export class AnalysisService {
   constructor() {
     const apiKey = import.meta.env.VITE_GEMINI_API_KEY || (process.env.API_KEY as string | undefined);
     if (!apiKey) {
-      throw new Error('VITE_GEMINI_API_KEY is required. Please set it in your environment variables.');
+      const error = new Error('VITE_GEMINI_API_KEY is required. Please set it in your environment variables.');
+      console.error('AnalysisService API Key Error:', {
+        hasViteKey: !!import.meta.env.VITE_GEMINI_API_KEY,
+        hasProcessKey: !!process.env.API_KEY,
+        viteKeyLength: import.meta.env.VITE_GEMINI_API_KEY?.length || 0,
+        processKeyLength: (process.env.API_KEY as string | undefined)?.length || 0,
+        envKeys: Object.keys(import.meta.env).filter(k => k.includes('GEMINI') || k.includes('API')),
+      });
+      throw error;
     }
+    console.log('AnalysisService: Initializing GoogleGenAI with API key (length:', apiKey.length, ', first 10 chars:', apiKey.substring(0, 10), '...)');
     this.ai = new GoogleGenAI({ apiKey });
   }
 
