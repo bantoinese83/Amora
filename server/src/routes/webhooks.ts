@@ -5,7 +5,7 @@
 
 import express, { Router, Request, Response } from 'express';
 import Stripe from 'stripe';
-import { userRepository } from '../../shared/src/repositories/userRepository.js';
+import { userRepository } from '../../../shared/dist/src/repositories/userRepository.js';
 
 const router = Router();
 

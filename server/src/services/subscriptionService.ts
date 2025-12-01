@@ -3,7 +3,7 @@
  * Handles subscription status updates
  */
 
-import { userRepository } from '../../shared/src/repositories/userRepository.js';
+import { userRepository } from '../../../shared/dist/src/repositories/userRepository.js';
 
 /**
  * Update user premium status
