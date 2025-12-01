@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "type": "module",
   "main": "src/index.ts",
+  "scripts": {
+    "build": "tsc"
+  },
   "exports": {
     "./types": "./src/types/index.ts",
     "./repositories/*": "./src/repositories/*.ts",

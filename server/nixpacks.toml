@@ -2,10 +2,10 @@
 nixPkgs = ["nodejs_20", "npm-9_x"]
 
 [phases.install]
-cmds = ["npm install"]
+cmds = ["cd ../shared && npm install", "npm install"]
 
 [phases.build]
-cmds = ["npm run build"]
+cmds = ["cd ../shared && npm run build || true", "npm run build"]
 
 [start]
 cmd = "npm start"
