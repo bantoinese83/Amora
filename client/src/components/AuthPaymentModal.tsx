@@ -17,7 +17,7 @@ import {
 type AuthMode = 'email' | 'pin' | 'payment';
 
 export const AuthPaymentModal: React.FC = () => {
-  const { modals, login, authState } = useApp();
+  const { modals, login, authState, closeModal } = useApp();
   const [mode, setMode] = useState<AuthMode>('email');
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
@@ -297,6 +297,9 @@ export const AuthPaymentModal: React.FC = () => {
     return undefined;
   }, [modals.auth, authState.isAuthenticated, mode, showPayment]);
 
+  // Determine if user is premium
+  const isPremium = authState.user?.isPremium || false;
+
   return (
     <Modal isOpen={modals.auth} onClose={undefined}>
       {!authState.isAuthenticated ? (
@@ -499,7 +502,8 @@ export const AuthPaymentModal: React.FC = () => {
             </button>
           </div>
         )
-      ) : (
+      ) : isPremium ? (
+        // Authenticated and Premium - Show subscription management
         <div className="text-center">
           <div className="w-16 h-16 bg-gradient-to-tr from-amora-500 to-pink-500 rounded-full mx-auto mb-4 flex items-center justify-center text-2xl font-bold text-white">
             {authState.user?.name?.charAt(0) || 'U'}
@@ -572,6 +576,17 @@ export const AuthPaymentModal: React.FC = () => {
             {isLoadingPortal ? 'Opening...' : 'Manage Subscription'}
           </Button>
         </div>
+      ) : (
+        // Authenticated but NOT Premium - Show payment checkout
+        <PaymentCheckout
+          onCancel={() => {
+            // Close modal when canceling payment
+            const { closeModal } = useApp();
+            closeModal('auth');
+          }}
+          customerEmail={authState.user?.email}
+          userId={authState.user?.id}
+        />
       )}
     </Modal>
   );
