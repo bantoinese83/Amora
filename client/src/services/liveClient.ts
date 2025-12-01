@@ -71,8 +71,15 @@ export class LiveClient {
   ) {
     const apiKey = import.meta.env.VITE_GEMINI_API_KEY || (process.env.API_KEY as string | undefined);
     if (!apiKey) {
-      throw new Error('VITE_GEMINI_API_KEY is required. Please set it in your environment variables.');
+      const error = new Error('VITE_GEMINI_API_KEY is required. Please set it in your environment variables.');
+      console.error('API Key Error:', {
+        hasViteKey: !!import.meta.env.VITE_GEMINI_API_KEY,
+        hasProcessKey: !!process.env.API_KEY,
+        envKeys: Object.keys(import.meta.env).filter(k => k.includes('GEMINI') || k.includes('API')),
+      });
+      throw error;
     }
+    console.log('Initializing GoogleGenAI with API key (length:', apiKey.length, ')');
     this.ai = new GoogleGenAI({ apiKey });
     this.onStatusChange = onStatusChange;
     this.onAudioUpdate = onAudioUpdate;
@@ -138,14 +145,27 @@ export class LiveClient {
             this.startInputStreaming(sessionPromise);
           },
           onmessage: msg => this.handleMessage(msg),
-          onclose: () => {
+          onclose: (event) => {
+            console.log('WebSocket closed:', {
+              code: event?.code,
+              reason: event?.reason,
+              wasClean: event?.wasClean,
+            });
             this.onStatusChange('disconnected');
             this.cleanup();
           },
           onerror: err => {
             console.error('Gemini Live Error:', err);
+            // Log more details about the error
+            if (err instanceof Error) {
+              console.error('Error message:', err.message);
+              console.error('Error stack:', err.stack);
+            } else if (typeof err === 'object' && err !== null) {
+              console.error('Error details:', JSON.stringify(err, null, 2));
+            }
             this.onStatusChange('error');
-            this.cleanup();
+            // Don't cleanup immediately - let the onclose handler do it
+            // This prevents race conditions
           },
         },
       });
