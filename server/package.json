@@ -5,7 +5,6 @@
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "prebuild": "mkdir -p shared && cp -r ../shared/src shared/src && cp ../shared/package.json shared/ && cp ../shared/tsconfig.json shared/ 2>/dev/null || true",
     "build": "cd shared && npm install && npm run build && cd .. && tsc",
     "start": "node dist/index.js",
     "type-check": "tsc --noEmit",
