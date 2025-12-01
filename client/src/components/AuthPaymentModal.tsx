@@ -567,16 +567,14 @@ export const AuthPaymentModal: React.FC = () => {
                 
                 // Provide more specific error messages
                 if (errorMessage.includes('Customer not found') || errorMessage.includes('No active subscription')) {
-                  // If user needs subscription, show payment checkout instead
-                  if (errorMessage.includes('needsSubscription') || !isPremium) {
-                    // Close portal modal and show payment checkout
-                    setShowPayment(true);
-                    setMode('payment');
-                  } else {
-                    alert(
-                      'No active subscription found. Please subscribe to Amora Premium first to manage your subscription.'
-                    );
-                  }
+                  // If user needs subscription, redirect to payment checkout
+                  // Close current modal and show payment checkout
+                  closeModal('auth');
+                  // Re-open modal - it will show PaymentCheckout for non-premium users
+                  // For premium users without customer ID, they also need to subscribe
+                  setTimeout(() => {
+                    openModal('auth');
+                  }, 100);
                 } else if (errorMessage.includes('404') || errorMessage.includes('not found')) {
                   alert(
                     'Subscription not found. If you recently subscribed, please wait a moment and try again.'
