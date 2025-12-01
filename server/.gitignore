@@ -1,6 +1,7 @@
 node_modules/
 dist/
 .env
-shared/
+shared/node_modules/
+shared/dist/
 *.log
 
