@@ -3,7 +3,7 @@
  * Handles subscription management, status checking, and feature gating
  */
 
-import { userRepository } from '../repositories/userRepository';
+import { userRepository } from '../repositories/userRepository.js';
 
 export interface SubscriptionStatus {
   isActive: boolean;

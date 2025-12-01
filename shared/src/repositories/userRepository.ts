@@ -5,7 +5,7 @@
  */
 
 import bcrypt from 'bcryptjs';
-import { executeQuery, executeQueryOne, validateUUID } from '../services/databaseService';
+import { executeQuery, executeQueryOne, validateUUID } from '../services/databaseService.js';
 
 export interface User {
   id: string;

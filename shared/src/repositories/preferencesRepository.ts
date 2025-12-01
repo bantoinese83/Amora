@@ -4,7 +4,7 @@
  * Includes comprehensive validation and edge case handling
  */
 
-import { executeQuery, executeQueryOne, validateUUID } from '../services/databaseService';
+import { executeQuery, executeQueryOne, validateUUID } from '../services/databaseService.js';
 
 // Valid voice options
 const VALID_VOICES = ['Kore', 'Charon', 'Fenrir', 'Aoede', 'Puck'];

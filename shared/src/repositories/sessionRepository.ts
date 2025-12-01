@@ -4,8 +4,8 @@
  * Includes comprehensive validation and edge case handling
  */
 
-import { Session, MessageLog, AudioChunk } from '../types';
-import { executeQuery, executeQueryOne, validateUUID } from '../services/databaseService';
+import { Session, MessageLog, AudioChunk } from '../types/index.js';
+import { executeQuery, executeQueryOne, validateUUID } from '../services/databaseService.js';
 
 interface SessionRow {
   id: string;
