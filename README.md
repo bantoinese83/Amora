@@ -26,7 +26,6 @@ Amora is a sophisticated voice-powered AI companion application designed to faci
 
 #### Intelligence & Analysis
 - **AI-Powered Session Analysis**: Post-session insights including mood analysis, psychological insights, and actionable recommendations
-- **Knowledge Base Integration**: Upload documents (PDF, TXT, MD, CSV) to provide personalized context using RAG (Retrieval Augmented Generation)
 - **Structured Conversations**: Guided 10-15 minute reflection sessions with therapeutic conversation flow
 - **Session History**: Comprehensive archive with full transcripts, audio playback, and analysis summaries
 
@@ -230,12 +229,10 @@ src/
 ├── repositories/       # Data access layer (localStorage abstraction)
 │   ├── sessionRepository.ts
 │   ├── preferencesRepository.ts
-│   ├── storageRepository.ts
-│   └── cacheRepository.ts
+│   └── storageRepository.ts
 ├── services/           # Business logic and external API integration
 │   ├── liveClient.ts           # Gemini Live API client
 │   ├── analysisService.ts      # AI-powered session analysis
-│   ├── ragService.ts           # Knowledge base (RAG) integration
 │   └── stripeService.ts        # Payment processing
 ├── utils/              # Utility functions and helpers
 └── types.ts            # TypeScript type definitions

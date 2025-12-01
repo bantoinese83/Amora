@@ -1,18 +1,12 @@
 import React from 'react';
 import { ConnectionStatus } from '../types';
-import { BookIcon } from './common/Icons';
 
 interface StatusIndicatorProps {
   status: ConnectionStatus;
-  ragStoreName: string | null;
   onRetry?: (() => void) | undefined;
 }
 
-export const StatusIndicator: React.FC<StatusIndicatorProps> = ({
-  status,
-  ragStoreName,
-  onRetry,
-}) => {
+export const StatusIndicator: React.FC<StatusIndicatorProps> = ({ status, onRetry }) => {
   const getStatusConfig = () => {
     switch (status) {
       case ConnectionStatus.DISCONNECTED:
@@ -32,7 +26,7 @@ export const StatusIndicator: React.FC<StatusIndicatorProps> = ({
       case ConnectionStatus.CONNECTED:
         return {
           text: 'Amora is listening',
-          subtext: ragStoreName ? 'Using your notes' : 'Ready to talk',
+          subtext: 'Ready to talk',
           containerClass:
             'bg-amora-500/10 border-amora-500/20 text-amora-200 shadow-[0_0_15px_rgba(139,92,246,0.15)]',
           indicatorClass: 'bg-amora-400 animate-pulse',
@@ -50,7 +44,6 @@ export const StatusIndicator: React.FC<StatusIndicatorProps> = ({
   };
 
   const config = getStatusConfig();
-  const showRagIcon = status === ConnectionStatus.CONNECTED && !!ragStoreName;
 
   const isClickable = status === ConnectionStatus.ERROR && onRetry;
 
@@ -78,7 +71,6 @@ export const StatusIndicator: React.FC<StatusIndicatorProps> = ({
         <span className="text-sm font-medium tracking-wide">{config.text}</span>
         {config.subtext && (
           <div className="flex items-center gap-1 mt-1 text-[10px] opacity-70 uppercase tracking-wider font-semibold">
-            {showRagIcon && <BookIcon className="w-3 h-3" />}
             <span>{config.subtext}</span>
           </div>
         )}

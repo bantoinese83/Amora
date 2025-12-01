@@ -135,7 +135,9 @@ export const PaymentCheckout: React.FC<PaymentCheckoutProps> = ({ onCancel, cust
           fullWidth
           disabled={isLoading}
         >
-          {isLoading ? 'Processing...' : `Subscribe ${selectedPlan === 'monthly' ? 'Monthly' : 'Yearly'}`}
+          {isLoading
+            ? 'Processing...'
+            : `Subscribe ${selectedPlan === 'monthly' ? 'Monthly' : 'Yearly'}`}
         </Button>
       </div>
 
@@ -145,4 +147,3 @@ export const PaymentCheckout: React.FC<PaymentCheckoutProps> = ({ onCancel, cust
     </div>
   );
 };
-

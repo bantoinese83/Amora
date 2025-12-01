@@ -26,6 +26,7 @@ export default [
         navigator: 'readonly',
         console: 'readonly',
         localStorage: 'readonly',
+        fetch: 'readonly',
         setTimeout: 'readonly',
         clearTimeout: 'readonly',
         setInterval: 'readonly',
@@ -36,6 +37,7 @@ export default [
         NodeJS: 'readonly',
         btoa: 'readonly',
         atob: 'readonly',
+        alert: 'readonly',
       },
     },
     plugins: {

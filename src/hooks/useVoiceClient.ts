@@ -41,7 +41,7 @@ export function useVoiceClient() {
   }, []);
 
   const connect = useCallback(
-    async (ragStoreName?: string | null, voiceName: string = 'Kore') => {
+    async (voiceName: string = 'Kore') => {
       if (liveClientRef.current) {
         await liveClientRef.current.disconnect();
       }
@@ -62,7 +62,6 @@ export function useVoiceClient() {
         model: MODEL_NAME,
         systemInstruction: SYSTEM_INSTRUCTION,
         voiceName: voiceName,
-        ...(ragStoreName ? { fileSearchStoreName: ragStoreName } : {}),
       });
     },
     [handleStatusChange, handleAudioUpdate, handleTranscription, handleAudioChunk]

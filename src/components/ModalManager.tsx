@@ -1,6 +1,5 @@
 import React from 'react';
 import { SessionHistory } from './SessionHistory';
-import { KnowledgeBaseModal } from './KnowledgeBaseModal';
 import { PostSessionSummary } from './PostSessionSummary';
 import { AuthPaymentModal } from './AuthPaymentModal';
 import { SettingsModal } from './SettingsModal';
@@ -17,7 +16,6 @@ export const ModalManager: React.FC = () => {
       <SessionHistory />
 
       {/* Standard Modals (controlled by AppContext) */}
-      <KnowledgeBaseModal />
       <PostSessionSummary />
       <AuthPaymentModal />
       <SettingsModal />

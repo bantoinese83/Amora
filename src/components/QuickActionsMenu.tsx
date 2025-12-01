@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
-import { XIcon, HistoryIcon, BookIcon, SettingsIcon, DownloadIcon, CopyIcon } from './common/Icons';
+import { XIcon, HistoryIcon, SettingsIcon, DownloadIcon, CopyIcon } from './common/Icons';
 import { formatDate } from '../utils/formatters';
 import { downloadTranscriptAsText } from '../utils/fileUtils';
 import { copyToClipboard, formatTranscriptForSharing } from '../utils/clipboardUtils';
@@ -37,17 +37,6 @@ export const QuickActionsMenu: React.FC<{ isOpen: boolean; onClose: () => void }
       shortcut: 'H',
       action: () => {
         openModal('history');
-        onClose();
-      },
-      category: 'navigation',
-    },
-    {
-      id: 'knowledge',
-      label: 'Open Knowledge Base',
-      icon: <BookIcon />,
-      shortcut: 'K',
-      action: () => {
-        openModal('knowledge');
         onClose();
       },
       category: 'navigation',

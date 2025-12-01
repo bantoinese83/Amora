@@ -14,7 +14,7 @@ import { AlertIcon, XIcon } from './components/common/Icons';
 import { QuickActionsMenu } from './components/QuickActionsMenu';
 
 export default function App() {
-  const { ragStoreName, openModal, authState } = useApp();
+  const { openModal, authState } = useApp();
 
   // Use the orchestration hook to handle business logic
   const {
@@ -70,10 +70,8 @@ export default function App() {
       {/* Header */}
       <Header
         onHistoryClick={() => openModal('history')}
-        onKnowledgeClick={() => openModal('knowledge')}
         onSettingsClick={() => openModal('settings')}
         onAuthClick={() => openModal('auth')}
-        ragStoreName={ragStoreName}
         authState={authState}
         showTimer={showTimer}
         formattedTime={formattedTime}
@@ -87,7 +85,6 @@ export default function App() {
           <VoiceOrb status={status} audioRef={audioDataRef} onClick={toggleSession} />
           <StatusIndicator
             status={status}
-            ragStoreName={ragStoreName}
             {...(status === ConnectionStatus.ERROR ? { onRetry: toggleSession } : {})}
           />
         </div>

@@ -157,4 +157,3 @@ export async function createPortalSession(
 export async function redirectToPortal(portalUrl: string): Promise<void> {
   window.location.href = portalUrl;
 }
-

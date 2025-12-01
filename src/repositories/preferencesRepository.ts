@@ -5,30 +5,17 @@
 
 import { storageRepository } from './storageRepository';
 
-const STORAGE_KEY_RAG = 'amora_rag_store';
 const STORAGE_KEY_VOICE = 'amora_selected_voice';
 const STORAGE_KEY_PIN = 'amora_user_pin';
 const STORAGE_KEY_PIN_SET = 'amora_pin_set';
 
 class PreferencesRepository {
-  getRagStoreName(): string | null {
-    return storageRepository.getString(STORAGE_KEY_RAG);
-  }
-
-  setRagStoreName(name: string): void {
-    storageRepository.setString(STORAGE_KEY_RAG, name);
-  }
-
   getSelectedVoice(): string | null {
     return storageRepository.getString(STORAGE_KEY_VOICE);
   }
 
   setSelectedVoice(voice: string): void {
     storageRepository.setString(STORAGE_KEY_VOICE, voice);
-  }
-
-  clearRagStoreName(): void {
-    storageRepository.remove(STORAGE_KEY_RAG);
   }
 
   clearSelectedVoice(): void {

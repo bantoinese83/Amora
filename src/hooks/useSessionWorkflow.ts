@@ -11,7 +11,7 @@ import { SESSION_DURATION_SECONDS } from '../constants';
  * Connects Voice Client, Timer, and Data Storage.
  */
 export function useSessionWorkflow() {
-  const { ragStoreName, selectedVoice, saveNewSession, openModal } = useApp();
+  const { selectedVoice, saveNewSession, openModal } = useApp();
 
   const {
     status,
@@ -59,8 +59,8 @@ export function useSessionWorkflow() {
   // Auto-retry on connection errors
   const attemptReconnect = useCallback(async () => {
     resetTimer();
-    await connect(ragStoreName, selectedVoice);
-  }, [connect, ragStoreName, selectedVoice, resetTimer]);
+    await connect(selectedVoice);
+  }, [connect, selectedVoice, resetTimer]);
 
   const { retry: autoRetry, reset: resetRetry } = useAutoRetry(attemptReconnect, {
     maxRetries: 2,
@@ -88,7 +88,7 @@ export function useSessionWorkflow() {
       // Start
       resetRetry();
       resetTimer();
-      await connect(ragStoreName, selectedVoice);
+      await connect(selectedVoice);
     }
   };
 

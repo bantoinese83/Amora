@@ -7,7 +7,6 @@ export interface LiveConfig {
   model: string;
   systemInstruction: string;
   voiceName: string;
-  fileSearchStoreName?: string | null;
 }
 
 // Pure Extractor Functions (Law of Demeter)
@@ -115,7 +114,7 @@ export class LiveClient {
         },
       });
 
-      // 3. Configure Config with optional RAG tools
+      // 3. Configure session
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const sessionConfig: any = {
         responseModalities: [Modality.AUDIO],
@@ -128,17 +127,6 @@ export class LiveClient {
         // Optimize for speed by disabling thinking budget
         thinkingConfig: { thinkingBudget: 0 },
       };
-
-      if (config.fileSearchStoreName) {
-        sessionConfig.tools = [
-          {
-            fileSearch: {
-              fileSearchStoreNames: [config.fileSearchStoreName],
-            },
-          },
-        ];
-        // Connecting with RAG Store
-      }
 
       // 4. Connect to Gemini Live
       const sessionPromise = this.ai.live.connect({

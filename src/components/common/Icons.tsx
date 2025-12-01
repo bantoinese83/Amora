@@ -27,17 +27,6 @@ export const HistoryIcon: React.FC<IconProps> = props => (
   </BaseIcon>
 );
 
-export const BookIcon: React.FC<IconProps> = props => (
-  <BaseIcon {...props}>
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-    />
-  </BaseIcon>
-);
-
 export const MicIcon: React.FC<IconProps> = props => (
   <BaseIcon {...props}>
     <path
@@ -58,17 +47,6 @@ export const MicOffIcon: React.FC<IconProps> = props => (
       d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
     />
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3l18 18" />
-  </BaseIcon>
-);
-
-export const UploadIcon: React.FC<IconProps> = props => (
-  <BaseIcon {...props}>
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
-    />
   </BaseIcon>
 );
 

@@ -34,54 +34,54 @@ export const SessionHistory: React.FC = () => {
         role="dialog"
         aria-label="Your Conversations"
       >
-      <div className="p-6 h-full flex flex-col">
-        <div className="flex justify-between items-center mb-8">
-          <h2 className="text-xl font-bold text-white">History</h2>
-          <button
-            onClick={() => closeModal('history')}
-            className="text-slate-400 hover:text-white focus:outline-none focus:text-white"
-            aria-label="Close History"
-          >
-            <XIcon />
-          </button>
-        </div>
+        <div className="p-6 h-full flex flex-col">
+          <div className="flex justify-between items-center mb-8">
+            <h2 className="text-xl font-bold text-white">History</h2>
+            <button
+              onClick={() => closeModal('history')}
+              className="text-slate-400 hover:text-white focus:outline-none focus:text-white"
+              aria-label="Close History"
+            >
+              <XIcon />
+            </button>
+          </div>
 
-        <div className="flex-1 overflow-y-auto space-y-4">
-          {sessions.length === 0 ? (
-            <p className="text-slate-500 text-center mt-10">No conversations yet.</p>
-          ) : (
-            sessions.map(session => (
-              <Card
-                key={session.id}
-                onClick={() => handleSessionClick(session)}
-                className="hover:border-amora-500/50 transition-colors cursor-pointer group relative"
-              >
-                <div className="flex justify-between items-start mb-2">
-                  <span className="text-sm text-amora-300 font-medium">
-                    {formatDate(session.date)}
-                  </span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-slate-500 bg-slate-800 px-2 py-1 rounded-full">
-                      {formatDuration(session.durationSeconds)}
+          <div className="flex-1 overflow-y-auto space-y-4">
+            {sessions.length === 0 ? (
+              <p className="text-slate-500 text-center mt-10">No conversations yet.</p>
+            ) : (
+              sessions.map(session => (
+                <Card
+                  key={session.id}
+                  onClick={() => handleSessionClick(session)}
+                  className="hover:border-amora-500/50 transition-colors cursor-pointer group relative"
+                >
+                  <div className="flex justify-between items-start mb-2">
+                    <span className="text-sm text-amora-300 font-medium">
+                      {formatDate(session.date)}
                     </span>
-                    <button
-                      onClick={e => handleDownload(e, session)}
-                      className="p-1.5 text-slate-500 hover:text-amora-300 hover:bg-slate-700 rounded-full transition-colors"
-                      title="Download Conversation"
-                      aria-label={`Download conversation from ${formatDate(session.date)}`}
-                    >
-                      <DownloadIcon className="w-4 h-4" />
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-slate-500 bg-slate-800 px-2 py-1 rounded-full">
+                        {formatDuration(session.durationSeconds)}
+                      </span>
+                      <button
+                        onClick={e => handleDownload(e, session)}
+                        className="p-1.5 text-slate-500 hover:text-amora-300 hover:bg-slate-700 rounded-full transition-colors"
+                        title="Download Conversation"
+                        aria-label={`Download conversation from ${formatDate(session.date)}`}
+                      >
+                        <DownloadIcon className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
-                </div>
-                <p className="text-slate-400 text-sm line-clamp-2 group-hover:text-slate-300">
-                  {session.preview}
-                </p>
-              </Card>
-            ))
-          )}
+                  <p className="text-slate-400 text-sm line-clamp-2 group-hover:text-slate-300">
+                    {session.preview}
+                  </p>
+                </Card>
+              ))
+            )}
+          </div>
         </div>
-      </div>
       </div>
     </>
   );

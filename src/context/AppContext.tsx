@@ -7,7 +7,6 @@ import { preferencesRepository } from '../repositories/preferencesRepository';
 interface ModalState {
   auth: boolean;
   history: boolean;
-  knowledge: boolean;
   settings: boolean;
   summary: Session | null;
 }
@@ -21,10 +20,6 @@ interface AppContextType {
   modals: ModalState;
   openModal: (key: keyof ModalState, data?: unknown) => void;
   closeModal: (key: keyof ModalState) => void;
-
-  // RAG
-  ragStoreName: string | null;
-  setRagStoreName: (name: string) => void;
 
   // Voice Settings
   selectedVoice: string;
@@ -50,13 +45,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [modals, setModals] = useState<ModalState>({
     auth: true, // Start with auth open - required for security
     history: false,
-    knowledge: false,
     settings: false,
     summary: null,
   });
-
-  // RAG State
-  const [ragStoreName, setRagStoreNameState] = useState<string | null>(null);
 
   // Voice State
   const [selectedVoice, setSelectedVoiceState] = useState<string>('Kore');
@@ -67,9 +58,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   // Initialization
   useEffect(() => {
     setSessions(sessionRepository.getAll());
-
-    const savedStore = preferencesRepository.getRagStoreName();
-    if (savedStore) setRagStoreNameState(savedStore);
 
     const savedVoice = preferencesRepository.getSelectedVoice();
     if (savedVoice) setSelectedVoiceState(savedVoice);
@@ -93,11 +81,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   const closeModal = (key: keyof ModalState) => {
     setModals(prev => ({ ...prev, [key]: key === 'summary' ? null : false }));
-  };
-
-  const setRagStoreName = (name: string) => {
-    setRagStoreNameState(name);
-    preferencesRepository.setRagStoreName(name);
   };
 
   const setSelectedVoice = (voice: string) => {
@@ -132,8 +115,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         modals,
         openModal,
         closeModal,
-        ragStoreName,
-        setRagStoreName,
         selectedVoice,
         setSelectedVoice,
         sessions,

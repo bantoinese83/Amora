@@ -1,13 +1,11 @@
 import React from 'react';
 import { AuthState } from '../types';
-import { HistoryIcon, BookIcon, SettingsIcon } from './common/Icons';
+import { HistoryIcon, SettingsIcon } from './common/Icons';
 
 interface HeaderProps {
   onHistoryClick: () => void;
-  onKnowledgeClick: () => void;
   onSettingsClick: () => void;
   onAuthClick: () => void;
-  ragStoreName: string | null;
   authState: AuthState;
   showTimer: boolean;
   formattedTime: string;
@@ -15,10 +13,8 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({
   onHistoryClick,
-  onKnowledgeClick,
   onSettingsClick,
   onAuthClick,
-  ragStoreName,
   authState,
   showTimer,
   formattedTime,
@@ -36,16 +32,6 @@ export const Header: React.FC<HeaderProps> = ({
           aria-label="View your past conversations"
         >
           <HistoryIcon />
-        </button>
-
-        <button
-          id="onboarding-knowledge-btn"
-          onClick={onKnowledgeClick}
-          className={`p-2 transition-colors ${ragStoreName ? 'text-amora-400 hover:text-amora-300' : 'text-slate-400 hover:text-white'}`}
-          title="Knowledge Base"
-          aria-label="Open Knowledge Base"
-        >
-          <BookIcon />
         </button>
 
         <button
