@@ -25,7 +25,10 @@ app.use(
     credentials: true,
   })
 );
-app.use(express.json());
+// Increase body size limit for session routes (audio chunks can be large)
+// Default is 100kb, we need much more for base64-encoded audio
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Stripe webhook endpoint needs raw body (must be before other routes)
 app.use('/api/webhooks', webhookRoutes);

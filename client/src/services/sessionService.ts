@@ -70,24 +70,58 @@ export async function createSession(
   audioChunks?: AudioChunk[]
 ): Promise<Session> {
   try {
+    // Check payload size before sending
+    const payload = {
+      transcript,
+      durationSeconds,
+      audioChunks,
+    };
+    const payloadSize = new Blob([JSON.stringify(payload)]).size;
+    const maxSize = 45 * 1024 * 1024; // 45MB (leave some headroom for 50MB limit)
+
+    // If payload is too large, send without audio chunks
+    let finalPayload = payload;
+    if (payloadSize > maxSize && audioChunks) {
+      console.warn(
+        `Session payload too large (${(payloadSize / 1024 / 1024).toFixed(2)}MB). Saving without audio chunks.`
+      );
+      finalPayload = {
+        transcript,
+        durationSeconds,
+        // Omit audioChunks
+      };
+    }
+
     const response = await fetch(`${API_URL}/api/sessions/user/${userId}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        transcript,
-        durationSeconds,
-        audioChunks,
-      }),
+      body: JSON.stringify(finalPayload),
     });
 
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Failed to create session');
+      // Try to parse error, but handle HTML responses (413 errors sometimes return HTML)
+      let errorMessage = 'Failed to create session';
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.error || errorMessage;
+      } catch {
+        // If response is not JSON (e.g., HTML error page), use status text
+        errorMessage = response.status === 413
+          ? 'Session data is too large. Saving without audio playback.'
+          : `Server error: ${response.status} ${response.statusText}`;
+      }
+      throw new Error(errorMessage);
     }
 
     const data = await response.json();
+    
+    // Log warning if audio was omitted
+    if (data.warning) {
+      console.warn(data.warning);
+    }
+    
     return data.session;
   } catch (error) {
     console.error('Error creating session:', error);
