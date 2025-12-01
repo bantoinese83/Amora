@@ -1,0 +1,237 @@
+import React, { useEffect, useState, useRef } from 'react';
+import { useApp } from '../context/AppContext';
+import { AnalysisService } from '../services/analysisService';
+import { Modal } from './common/Modal';
+import { DownloadIcon, ShareIcon } from './common/Icons';
+import { formatDuration } from '../utils/formatters';
+import { Card } from './common/Card';
+import { Button } from './common/Button';
+import { downloadTranscriptAsText } from '../utils/fileUtils';
+import { generateShareImage } from '../utils/shareUtils';
+import { SessionAnalysis } from '../types';
+import { getIconComponent } from '../utils/iconUtils';
+import { AudioPlayer } from './common/AudioPlayer';
+import { MessageBubble } from './common/MessageBubble';
+
+export const PostSessionSummary: React.FC = () => {
+  const { modals, closeModal, updateSession } = useApp();
+  const session = modals.summary;
+
+  const [analysis, setAnalysis] = useState<SessionAnalysis | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSharing, setIsSharing] = useState(false);
+  const [showTranscript, setShowTranscript] = useState(false);
+  const generationRef = useRef<string | null>(null);
+  const transcriptRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!session) {
+      setAnalysis(null);
+      generationRef.current = null;
+      return;
+    }
+
+    // 1. If the session object already has analysis (e.g. opened from history), use it.
+    if (session.analysis) {
+      setAnalysis(session.analysis);
+      setIsLoading(false);
+      return;
+    }
+
+    // 2. If we have already generated analysis for this session ID in this component instance, use it.
+    if (analysis && generationRef.current === session.id) {
+      return;
+    }
+
+    // 3. Generate Analysis
+    const generate = async () => {
+      // Prevent double-firing
+      if (generationRef.current === session.id) return;
+      generationRef.current = session.id;
+
+      setIsLoading(true);
+      try {
+        const service = new AnalysisService();
+        const result = await service.generateAnalysis(session.transcript);
+
+        // Update local state
+        setAnalysis(result);
+
+        // Persist to App Context / Storage
+        updateSession(session.id, { analysis: result, preview: result.summary });
+      } catch (e) {
+        console.error('Failed to generate analysis', e);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    generate();
+  }, [session, updateSession, analysis]);
+
+  const handleShare = async () => {
+    if (analysis && session) {
+      setIsSharing(true);
+      try {
+        await generateShareImage(analysis, new Date(session.date).toLocaleDateString());
+      } catch (e) {
+        console.error('Share failed', e);
+      } finally {
+        setIsSharing(false);
+      }
+    }
+  };
+
+  if (!session) return null;
+
+  return (
+    <Modal
+      isOpen={!!session}
+      onClose={() => closeModal('summary')}
+      className="max-w-lg w-auto max-h-[90vh] overflow-hidden flex flex-col"
+    >
+      <div className="text-center transform transition-all scale-100 opacity-100 overflow-y-auto flex-1 min-h-0">
+        {/* Header Status */}
+        <div className="mb-4">
+          <div className="w-14 h-14 bg-gradient-to-tr from-amora-500 to-pink-500 text-white rounded-full flex items-center justify-center mx-auto mb-3 border-4 border-slate-900 shadow-xl">
+            {isLoading ? (
+              <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <div className="text-white">
+                {analysis?.icon
+                  ? getIconComponent(analysis.icon, 'w-8 h-8')
+                  : getIconComponent(analysis?.mood, 'w-8 h-8')}
+              </div>
+            )}
+          </div>
+          <h2 className="text-xl font-bold text-white">
+            {isLoading ? 'Reflecting on your conversation...' : analysis?.title || 'All done!'}
+          </h2>
+          <p className="text-slate-400 text-xs mt-1">
+            {formatDuration(session.durationSeconds)} • {session.transcript.length}{' '}
+            {session.transcript.length === 1 ? 'exchange' : 'exchanges'}
+          </p>
+        </div>
+
+        {isLoading ? (
+          <div className="space-y-4 py-8">
+            <div className="h-24 bg-slate-800/50 rounded-xl animate-pulse"></div>
+            <div className="h-24 bg-slate-800/30 rounded-xl animate-pulse delay-75"></div>
+          </div>
+        ) : (
+          <div className="space-y-3 text-left animate-in fade-in slide-in-from-bottom-4 duration-500">
+            {/* Mood & Summary */}
+            <div className="space-y-3">
+              <Card className="flex flex-col items-center justify-center text-center p-3 bg-slate-800/40">
+                <span className="text-xs text-slate-500 uppercase font-bold tracking-wider mb-1">
+                  Vibe
+                </span>
+                <span className="font-semibold text-amora-300 text-sm">{analysis?.mood}</span>
+              </Card>
+              <Card className="p-3 flex flex-col justify-center bg-slate-800/40">
+                <span className="text-xs text-slate-500 uppercase font-bold tracking-wider mb-1">
+                  Summary
+                </span>
+                <p className="text-xs text-slate-300 leading-tight">{analysis?.summary}</p>
+              </Card>
+            </div>
+
+            {/* Key Insight */}
+            <Card className="border-l-4 border-l-amora-500 bg-gradient-to-r from-amora-900/20 to-transparent p-3">
+              <h3 className="text-amora-200 font-semibold mb-1.5 text-xs">Key Insight</h3>
+              <p className="text-slate-200 italic text-xs leading-relaxed">
+                "{analysis?.keyInsight}"
+              </p>
+            </Card>
+
+            {/* Action Item */}
+            <Card className="bg-slate-800/30 p-3">
+              <h3 className="text-green-400 font-semibold mb-1.5 text-xs flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                Try This
+              </h3>
+              <p className="text-slate-300 text-xs leading-relaxed">{analysis?.actionItem}</p>
+            </Card>
+
+            {/* Encouragement */}
+            <div className="text-center py-3 px-2">
+              <p className="text-amora-100 font-medium text-sm leading-relaxed">
+                {analysis?.encouragement}
+              </p>
+            </div>
+
+            {/* Audio Player */}
+            {session.audioChunks && session.audioChunks.length > 0 && (
+              <div className="mt-4">
+                <AudioPlayer audioChunks={session.audioChunks} />
+              </div>
+            )}
+
+            {/* Transcript Toggle */}
+            <div className="mt-4">
+              <Button
+                variant="ghost"
+                onClick={() => setShowTranscript(!showTranscript)}
+                fullWidth
+                className="flex items-center justify-center gap-2 bg-slate-800/30 hover:bg-slate-800"
+              >
+                {showTranscript ? 'Hide' : 'Show'} Full Conversation ({session.transcript.length}{' '}
+                {session.transcript.length === 1 ? 'exchange' : 'exchanges'})
+              </Button>
+            </div>
+
+            {/* Full Transcript */}
+            {showTranscript && (
+              <Card className="mt-4 max-h-96 overflow-y-auto bg-slate-900/50">
+                <div ref={transcriptRef} className="space-y-4 p-4">
+                  {session.transcript.map(msg => (
+                    <MessageBubble key={msg.id} message={msg} />
+                  ))}
+                </div>
+              </Card>
+            )}
+          </div>
+        )}
+
+        {/* Footer Actions */}
+        <div className="space-y-2 mt-4 pt-4 border-t border-slate-700/50">
+          <Button
+            variant="white"
+            onClick={() => closeModal('summary')}
+            fullWidth
+            className="text-sm py-2"
+          >
+            Done
+          </Button>
+
+          <div className="grid grid-cols-2 gap-2">
+            <Button
+              variant="ghost"
+              onClick={handleShare}
+              fullWidth
+              disabled={isLoading || isSharing}
+              className="flex items-center justify-center gap-2 bg-slate-800/30 hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed text-xs py-2"
+            >
+              {isSharing ? (
+                <div className="w-3 h-3 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <ShareIcon className="w-3 h-3" />
+              )}
+              {isSharing ? 'Sharing...' : 'Share'}
+            </Button>
+
+            <Button
+              variant="ghost"
+              onClick={() => downloadTranscriptAsText(session)}
+              fullWidth
+              className="flex items-center justify-center gap-2 bg-slate-800/30 hover:bg-slate-800 text-xs py-2"
+            >
+              <DownloadIcon className="w-3 h-3" />
+              Conversation
+            </Button>
+          </div>
+        </div>
+      </div>
+    </Modal>
+  );
+};

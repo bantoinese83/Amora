@@ -1,0 +1,5 @@
+{
+  "name": "Amora - Voice AI",
+  "description": "A real-time, voice-first AI companion powered by Gemini Live API, featuring low-latency audio streaming and dynamic conversation.",
+  "requestFramePermissions": ["microphone"]
+}
