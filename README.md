@@ -100,7 +100,7 @@ Amora is a sophisticated voice-powered AI companion application designed to faci
    PORT=3001
    ```
    
-   **Note**: See `DEPLOYMENT_COMPLETE.md` for production deployment details.
+   **Note**: See [Production Deployment](#production-deployment) section below for full details.
 
 4. **Run the development server**
    ```bash
@@ -187,7 +187,7 @@ npm start
 - **Client**: Deployed to Vercel at `https://amora-mu.vercel.app`
 - **Webhooks**: Configured in Stripe Dashboard for production
 
-See `DEPLOYMENT_COMPLETE.md` for full deployment details.
+See [Production Deployment](#production-deployment) section below for full deployment details.
 
 ### Testing Payments
 
@@ -329,6 +329,125 @@ For additional support or to report issues, please:
 - **Payment Processing**: Stripe.js
 - **State Management**: React Context API
 - **Code Quality**: ESLint, Prettier, Knip
+
+## Production Deployment
+
+### Current Production URLs
+
+- **Client (Frontend)**: https://amora-mu.vercel.app/
+- **Server (Backend)**: https://amora-server-production.up.railway.app
+- **Webhook Endpoint**: https://amora-server-production.up.railway.app/api/webhooks/stripe
+
+### Deployment Status
+
+✅ **Server**: Deployed to Railway  
+✅ **Client**: Deployed to Vercel  
+✅ **Webhooks**: Configured in Stripe Dashboard  
+✅ **Environment Variables**: Configured in both platforms
+
+### Stripe Configuration
+
+- **Account**: lamora (acct_1SZZStLoTzU5JHxj)
+- **Mode**: Live
+- **Product**: Amora Premium (prod_TWcmey3pVuDZE2)
+- **Monthly Price**: price_1SZaBALoTzU5JHxjIT4WSaKk ($9.99/month)
+- **Yearly Price**: price_1SZaBALoTzU5JHxjR6Q6huQr ($99.99/year)
+
+### Deploying Server to Railway
+
+1. **Install Railway CLI**:
+   ```bash
+   npm install -g @railway/cli
+   railway login
+   ```
+
+2. **Initialize Project**:
+   ```bash
+   cd server
+   railway init
+   ```
+
+3. **Set Environment Variables** (via Railway Dashboard or CLI):
+   ```bash
+   railway variables --set "STRIPE_SECRET_KEY=sk_live_YOUR_STRIPE_SECRET_KEY"
+   railway variables --set "STRIPE_PRICE_ID_MONTHLY=price_1SZaBALoTzU5JHxjIT4WSaKk"
+   railway variables --set "STRIPE_PRICE_ID_YEARLY=price_1SZaBALoTzU5JHxjR6Q6huQr"
+   railway variables --set "STRIPE_WEBHOOK_SECRET=whsec_YOUR_WEBHOOK_SECRET"
+   railway variables --set "NEON_DATABASE_URL=postgresql://user:password@host/database?sslmode=require"
+   railway variables --set "NODE_ENV=production"
+   ```
+
+4. **Deploy**:
+   ```bash
+   railway up
+   ```
+
+5. **Get Server URL**:
+   ```bash
+   railway domain
+   ```
+
+### Setting Up Stripe Webhooks
+
+1. Go to [Stripe Dashboard → Webhooks](https://dashboard.stripe.com/webhooks)
+2. Click **"+ Add endpoint"**
+3. Configure:
+   - **Endpoint URL**: `https://amora-server-production.up.railway.app/api/webhooks/stripe`
+   - **Description**: "Amora Production Webhooks"
+   - **Events to send**:
+     - `checkout.session.completed`
+     - `customer.subscription.created`
+     - `customer.subscription.updated`
+     - `customer.subscription.deleted`
+     - `invoice.paid`
+     - `invoice.payment_failed`
+4. Copy the **Signing secret** (`whsec_...`)
+5. Add it to Railway environment variables as `STRIPE_WEBHOOK_SECRET`
+
+### Updating Client Environment Variables
+
+In your **Vercel client project**:
+
+1. Go to **Settings → Environment Variables**
+2. Set `VITE_BACKEND_URL` to your Railway server URL:
+   ```
+   VITE_BACKEND_URL=https://amora-server-production.up.railway.app
+   ```
+3. **Redeploy** the client
+
+### Verifying Deployment
+
+```bash
+# Test server health
+curl https://amora-server-production.up.railway.app/health
+
+# Should return: {"status":"ok","timestamp":"..."}
+```
+
+### Production Troubleshooting
+
+#### Webhook Not Receiving Events
+- Verify webhook URL in Stripe Dashboard matches Railway domain
+- Check `STRIPE_WEBHOOK_SECRET` is set correctly in Railway
+- Check Railway logs: `railway logs`
+- Verify events are being sent in Stripe Dashboard → Webhooks → Recent events
+
+#### Premium Status Not Updating
+- Check Railway logs for webhook processing errors
+- Verify user email matches Stripe customer email
+- Check database connection is working
+- Verify webhook events are being received in Stripe Dashboard
+
+#### Server Returns 404
+- Wait a few minutes for deployment to complete
+- Check Railway Dashboard → Deployments → Build logs
+- Check Railway Dashboard → Service → Logs
+
+### Monitoring
+
+- **Railway Dashboard**: https://railway.com/project/1fe55e4a-4fe2-4c12-9d92-47c9a6133e0f
+- **Stripe Dashboard**: https://dashboard.stripe.com/webhooks
+- **Vercel Dashboard**: https://vercel.com/dashboard
 
 ## License
 
