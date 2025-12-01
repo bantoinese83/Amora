@@ -10,7 +10,7 @@ import React, {
 import { AuthState, Session, AudioChunk, MessageLog } from '../types';
 import { sessionRepository } from '@shared/repositories/sessionRepository';
 import { preferencesRepository } from '@shared/repositories/preferencesRepository';
-import { userRepository } from '@shared/repositories/userRepository';
+import { getUser, type User } from '../services/authService';
 import { getSubscriptionLimits } from '@shared/services/subscriptionService';
 
 interface ModalState {
@@ -130,12 +130,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
           return;
         }
 
-        const user = await userRepository.getUserWithPreferences(storedUserId);
+        const user = await getUser(storedUserId);
         if (user) {
           setCurrentUserId(user.id);
           setAuthState({
             isAuthenticated: true,
             user: {
+              id: user.id,
               name: user.name || 'User',
               email: user.email || '',
               isPremium: user.is_premium || false,
@@ -180,70 +181,25 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
   }, []);
 
-  // Login function - handles both signup and signin
+  // Login function - accepts user object directly (from authService)
   const login = useCallback(
-    async (email: string, pin: string, name?: string) => {
+    async (email: string, pin: string, name?: string, user?: User) => {
       // Prevent concurrent login attempts
       if (loginInProgress.current) {
         throw new Error('Login already in progress. Please wait.');
       }
 
-      // Validate inputs
-      if (!email || typeof email !== 'string' || email.trim() === '') {
-        throw new Error('Email is required');
-      }
-
-      if (!pin || typeof pin !== 'string' || pin.trim() === '') {
-        throw new Error('PIN is required');
-      }
-
-      if (name !== undefined && (!name || typeof name !== 'string' || name.trim() === '')) {
-        throw new Error('Name is required for new accounts');
+      // If user is provided, use it directly (from authService)
+      // Otherwise, this is a legacy call and should not be used
+      if (!user) {
+        throw new Error('User object is required. Use authService methods instead.');
       }
 
       loginInProgress.current = true;
 
       try {
-        let user;
-
-        if (name) {
-          // Sign up flow
-          const emailExists = await userRepository.emailExists(email);
-          if (emailExists) {
-            throw new Error('An account with this email already exists. Please sign in instead.');
-          }
-
-          user = await userRepository.createUser(email, pin, name);
-        } else {
-          // Sign in flow
-          user = await userRepository.authenticateUser(email, pin);
-          if (!user) {
-            // Check if email exists to provide better error message
-            const emailExists = await userRepository.emailExists(email);
-            if (!emailExists) {
-              throw new Error('No account found with this email. Please sign up first.');
-            }
-            throw new Error('Incorrect PIN. Please try again.');
-          }
-        }
-
-        // Get user with preferences
-        let userWithPrefs = await userRepository.getUserWithPreferences(user.id);
-        if (!userWithPrefs) {
-          // Try to create preferences if they don't exist
-          try {
-            await preferencesRepository.initializePreferences(user.id);
-            // Retry getting user with preferences
-            const retryUser = await userRepository.getUserWithPreferences(user.id);
-            if (!retryUser) {
-              throw new Error('Failed to load user preferences');
-            }
-            userWithPrefs = retryUser;
-          } catch (prefError) {
-            console.error('Failed to initialize preferences:', prefError);
-            throw new Error('Failed to load user preferences');
-          }
-        }
+        // User already authenticated via API, use it directly
+        const userWithPrefs = user;
 
         // Store user ID
         setCurrentUserId(user.id);
@@ -256,6 +212,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         setAuthState({
           isAuthenticated: true,
           user: {
+            id: user.id,
             name: user.name || 'User',
             email: user.email || '',
             isPremium: user.is_premium || false,

@@ -9,6 +9,7 @@ import { config } from 'dotenv';
 import { checkoutRoutes } from './routes/checkout.js';
 import { portalRoutes } from './routes/portal.js';
 import { webhookRoutes } from './routes/webhooks.js';
+import { authRoutes } from './routes/auth.js';
 
 // Load environment variables
 config();
@@ -31,6 +32,7 @@ app.use('/api/webhooks', webhookRoutes);
 // Regular API routes
 app.use('/api', checkoutRoutes);
 app.use('/api', portalRoutes);
+app.use('/api/auth', authRoutes);
 
 // Health check
 app.get('/health', (_req, res) => {

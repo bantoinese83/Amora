@@ -5,7 +5,7 @@ import { Modal } from './common/Modal';
 import { Card } from './common/Card';
 import { Button } from './common/Button';
 import { PaymentCheckout } from './PaymentCheckout';
-import { userRepository } from '../repositories/userRepository';
+import { checkEmail, signUp, signIn } from '../services/authService';
 import { updatePremiumStatus } from '../services/subscriptionService';
 import {
   checkPaymentStatus,
@@ -88,9 +88,11 @@ export const AuthPaymentModal: React.FC = () => {
       checkingEmailRef.current = true;
       let emailExists: boolean;
       try {
-        emailExists = await userRepository.emailExists(trimmedEmail);
-      } catch {
-        setAuthError('Unable to verify email. Please check your connection and try again.');
+        emailExists = await checkEmail(trimmedEmail);
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : 'Unable to verify email. Please check your connection and try again.';
+        setAuthError(errorMessage);
         setIsLoading(false);
         authInProgress.current = false;
         checkingEmailRef.current = false;
@@ -101,8 +103,18 @@ export const AuthPaymentModal: React.FC = () => {
 
       if (emailExists) {
         // Sign in flow
-        await login(trimmedEmail, pin);
-        resetPin();
+        try {
+          const user = await signIn(trimmedEmail, pin);
+          await login(trimmedEmail, pin, undefined, user);
+          resetPin();
+        } catch (error) {
+          const errorMessage =
+            error instanceof Error ? error.message : 'Failed to sign in. Please try again.';
+          setAuthError(errorMessage);
+          setIsLoading(false);
+          authInProgress.current = false;
+          return;
+        }
       } else {
         // Sign up flow - need name
         const trimmedName = name.trim();
@@ -121,9 +133,19 @@ export const AuthPaymentModal: React.FC = () => {
           return;
         }
 
-        await login(trimmedEmail, pin, trimmedName);
-        setShowPayment(true);
-        resetPin();
+        try {
+          const user = await signUp(trimmedEmail, pin, trimmedName);
+          await login(trimmedEmail, pin, trimmedName, user);
+          setShowPayment(true);
+          resetPin();
+        } catch (error) {
+          const errorMessage =
+            error instanceof Error ? error.message : 'Failed to create account. Please try again.';
+          setAuthError(errorMessage);
+          setIsLoading(false);
+          authInProgress.current = false;
+          return;
+        }
       }
     } catch (error) {
       const errorMessage =
