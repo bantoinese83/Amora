@@ -1,0 +1,22 @@
+{
+  "name": "@amora/shared",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "exports": {
+    "./types": "./src/types/index.ts",
+    "./repositories/*": "./src/repositories/*.ts",
+    "./services/*": "./src/services/*.ts"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^1.0.2",
+    "bcryptjs": "^3.0.3"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "typescript": "~5.8.2"
+  }
+}
