@@ -534,6 +534,9 @@ export const AuthPaymentModal: React.FC = () => {
                   ...(authState.user?.email ? { customerEmail: authState.user.email } : {}),
                   ...(authState.user?.id ? { userId: authState.user.id } : {}),
                 } as Parameters<typeof createPortalSession>[0];
+                
+                console.log('Creating portal session with params:', { ...params, customerEmail: params.customerEmail ? '***' : undefined });
+                
                 const portalSession = await createPortalSession(params);
 
                 if (portalSession?.url) {
@@ -543,9 +546,22 @@ export const AuthPaymentModal: React.FC = () => {
                 }
               } catch (error) {
                 console.error('Failed to open subscription portal:', error);
-                alert(
-                  'Unable to open subscription management. Please check your internet connection and try again.'
-                );
+                const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+                
+                // Provide more specific error messages
+                if (errorMessage.includes('Customer not found')) {
+                  alert(
+                    'No active subscription found. Please subscribe to Amora Premium first to manage your subscription.'
+                  );
+                } else if (errorMessage.includes('404') || errorMessage.includes('not found')) {
+                  alert(
+                    'Subscription not found. If you recently subscribed, please wait a moment and try again.'
+                  );
+                } else {
+                  alert(
+                    `Unable to open subscription management: ${errorMessage}. Please check your internet connection and try again.`
+                  );
+                }
               } finally {
                 setIsLoadingPortal(false);
               }

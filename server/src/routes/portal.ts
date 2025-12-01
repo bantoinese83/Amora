@@ -55,8 +55,22 @@ router.post('/create-portal-session', async (req: Request, res: Response) => {
     }
 
     if (!customer) {
+      console.error('Customer not found:', { userId, customerId, customerEmail, stripeCustomerId });
       return res.status(404).json({
-        error: 'Customer not found. Please ensure you have an active subscription.',
+        error: 'Customer not found. Please ensure you have an active subscription. If you recently subscribed, please wait a moment and try again.',
+      });
+    }
+
+    // Verify customer has at least one subscription before creating portal session
+    const subscriptions = await stripe.subscriptions.list({
+      customer: customer.id,
+      limit: 1,
+    });
+
+    if (subscriptions.data.length === 0) {
+      console.warn('Customer has no subscriptions:', customer.id);
+      return res.status(400).json({
+        error: 'No active subscription found. Please subscribe to Amora Premium first.',
       });
     }
 
@@ -66,6 +80,7 @@ router.post('/create-portal-session', async (req: Request, res: Response) => {
       return_url: returnUrl,
     });
 
+    console.log('Portal session created successfully for customer:', customer.id);
     res.json({ url: session.url });
   } catch (error) {
     console.error('Error creating portal session:', error);

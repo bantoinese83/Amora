@@ -146,29 +146,35 @@ export async function createPortalSession(
   params: CreatePortalSessionParams
 ): Promise<{ url: string } | null> {
   try {
-    const backendUrl = import.meta.env.VITE_BACKEND_URL;
+    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'https://amora-server-production.up.railway.app';
 
-    if (backendUrl) {
-      // Use backend API if available
-      const response = await fetch(`${backendUrl}/api/create-portal-session`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(params),
-      });
+    // Use backend API
+    const response = await fetch(`${backendUrl}/api/create-portal-session`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(params),
+    });
 
-      if (response.ok) {
-        const data = await response.json();
-        return { url: data.url };
+    if (!response.ok) {
+      // Try to get error message from response
+      let errorMessage = 'Failed to create portal session';
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.error || errorMessage;
+      } catch {
+        errorMessage = `Server responded with status ${response.status}`;
       }
+      throw new Error(errorMessage);
     }
 
-    // Fallback: Redirect to Stripe dashboard
-    // In production, this should use proper portal sessions
-    throw new Error(
-      'Customer Portal requires a backend server. Please set up the backend endpoint at /api/create-portal-session'
-    );
+    const data = await response.json();
+    if (!data.url) {
+      throw new Error('No portal URL returned from server');
+    }
+
+    return { url: data.url };
   } catch (error) {
     console.error('Error creating portal session:', error);
     throw error;
