@@ -102,6 +102,12 @@ Return a JSON object with the following structure:
 </output_format>`;
 
     try {
+      // Re-check API key before making request (in case it was updated)
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY || (process.env.API_KEY as string | undefined);
+      if (!apiKey) {
+        throw new Error('API key not available for analysis');
+      }
+
       const response = await this.ai.models.generateContent({
         model: 'gemini-2.5-flash',
         contents: prompt,
