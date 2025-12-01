@@ -42,8 +42,16 @@ export function useVoiceClient() {
 
   const connect = useCallback(
     async (voiceName: string = 'Kore') => {
+      // Disconnect existing client if any, but wait a bit to ensure cleanup
       if (liveClientRef.current) {
-        await liveClientRef.current.disconnect();
+        try {
+          await liveClientRef.current.disconnect();
+          // Small delay to ensure WebSocket is fully closed before creating new connection
+          await new Promise(resolve => setTimeout(resolve, 100));
+        } catch (error) {
+          console.debug('Error disconnecting previous client:', error);
+          // Continue anyway - cleanup will happen
+        }
       }
 
       setTranscripts([]);
@@ -58,11 +66,21 @@ export function useVoiceClient() {
       );
 
       // Inject configuration
-      await liveClientRef.current.connect({
-        model: MODEL_NAME,
-        systemInstruction: SYSTEM_INSTRUCTION,
-        voiceName: voiceName,
-      });
+      try {
+        await liveClientRef.current.connect({
+          model: MODEL_NAME,
+          systemInstruction: SYSTEM_INSTRUCTION,
+          voiceName: voiceName,
+        });
+      } catch (error) {
+        console.error('Failed to connect:', error);
+        // Cleanup on connection failure
+        if (liveClientRef.current) {
+          await liveClientRef.current.disconnect();
+          liveClientRef.current = null;
+        }
+        throw error;
+      }
     },
     [handleStatusChange, handleAudioUpdate, handleTranscription, handleAudioChunk]
   );

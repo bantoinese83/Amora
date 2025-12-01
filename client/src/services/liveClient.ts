@@ -152,10 +152,11 @@ export class LiveClient {
 
       this.session = sessionPromise;
     } catch (error) {
-      // Connection failed - error is logged for debugging
-      void error;
+      // Connection failed - log for debugging
+      console.error('LiveClient connection error:', error);
       this.onStatusChange('error');
       this.cleanup();
+      throw error; // Re-throw so caller knows connection failed
     }
   }
 
@@ -240,10 +241,21 @@ export class LiveClient {
 
       sessionPromise.then(session => {
         try {
-          session.sendRealtimeInput({ media: pcmBlob });
-        } catch {
+          // Check if session is still valid before sending
+          if (session && typeof session.sendRealtimeInput === 'function') {
+            session.sendRealtimeInput({ media: pcmBlob });
+          }
+        } catch (error) {
           // Ignore errors if session is closing/closed
+          // This is expected when disconnecting
+          if (this.session === null) {
+            // Only log if we're not intentionally disconnecting
+            console.debug('Session send error (expected during disconnect):', error);
+          }
         }
+      }).catch(error => {
+        // Session promise rejected - connection failed
+        console.debug('Session promise rejected (connection failed):', error);
       });
 
       // Schedule next processing based on buffer duration
@@ -360,9 +372,18 @@ export class LiveClient {
       this.session = null; // Prevent re-entry
       try {
         const session = await currentSession;
-        session.close();
-      } catch {
-        // Error closing session - already disconnected
+        // Check if session is already closed before trying to close
+        if (session && typeof session.close === 'function') {
+          try {
+            session.close();
+          } catch (closeError) {
+            // Session might already be closing/closed - ignore
+            console.debug('Session already closing/closed:', closeError);
+          }
+        }
+      } catch (error) {
+        // Session promise rejected or session not available - already disconnected
+        console.debug('Session disconnect error (expected if already disconnected):', error);
       }
     }
     this.cleanup();
