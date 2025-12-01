@@ -6,6 +6,7 @@
 import { Router, Request, Response } from 'express';
 import Stripe from 'stripe';
 import { userRepository } from '../../../shared/dist/src/repositories/userRepository.js';
+import { logger } from '../utils/logger';
 
 const router = Router();
 
@@ -92,7 +93,7 @@ router.get('/status/:userId', async (req: Request, res: Response) => {
           }
         }
       } catch (error) {
-        console.error('Error fetching Stripe subscription:', error);
+        logger.error('Error fetching Stripe subscription', { subscriptionId }, error instanceof Error ? error : undefined);
         // Fall back to database status
       }
     }
@@ -104,9 +105,8 @@ router.get('/status/:userId', async (req: Request, res: Response) => {
       customerId: user.stripe_customer_id || undefined,
     });
   } catch (error) {
-    console.error('Error getting subscription status:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Failed to get subscription status';
-    res.status(500).json({ error: errorMessage });
+    logger.error('Error getting subscription status', { userId }, error instanceof Error ? error : undefined);
+    res.status(500).json({ error: "We couldn't check your subscription status. Please try again." });
   }
 });
 
@@ -167,9 +167,8 @@ router.post('/verify-session', async (req: Request, res: Response) => {
       status: subscription.status,
     });
   } catch (error) {
-    console.error('Error verifying session:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Failed to verify session';
-    res.status(500).json({ error: errorMessage });
+    logger.error('Error verifying session', { userId, sessionId }, error instanceof Error ? error : undefined);
+    res.status(500).json({ error: "We couldn't verify your payment. Please try again." });
   }
 });
 

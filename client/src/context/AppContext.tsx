@@ -8,10 +8,15 @@ import React, {
   useRef,
 } from 'react';
 import { AuthState, Session, AudioChunk, MessageLog } from '../types';
-import { getSessions, createSession as createSessionAPI, updateSession as updateSessionAPI } from '../services/sessionService';
+import {
+  getSessions,
+  createSession as createSessionAPI,
+  updateSession as updateSessionAPI,
+} from '../services/sessionService';
 import { preferencesRepository } from '@shared/repositories/preferencesRepository';
 import { getUser, type User } from '../services/authService';
 import { getSubscriptionLimits } from '@shared/services/subscriptionService';
+import { logger } from '../utils/logger';
 
 interface ModalState {
   auth: boolean;
@@ -23,7 +28,7 @@ interface ModalState {
 interface AppContextType {
   // Auth
   authState: AuthState;
-  login: (email: string, pin: string, name?: string) => Promise<void>;
+  login: (email: string, pin: string, name?: string, user?: User) => Promise<void>;
   logout: () => void;
 
   // Modals
@@ -54,12 +59,13 @@ const STORAGE_KEY_USER_ID = 'amora_user_id';
 /**
  * Safe localStorage operations with error handling
  */
+// Safe localStorage wrapper - errors are logged but don't break the app
 const safeLocalStorage = {
   getItem: (key: string): string | null => {
     try {
       return localStorage.getItem(key);
-    } catch (error) {
-      console.warn('localStorage.getItem failed:', error);
+    } catch {
+      // Silent fail for localStorage - errors are expected in some browsers/contexts
       return null;
     }
   },
@@ -67,16 +73,16 @@ const safeLocalStorage = {
     try {
       localStorage.setItem(key, value);
       return true;
-    } catch (error) {
-      console.warn('localStorage.setItem failed:', error);
+    } catch {
+      // Silent fail for localStorage - errors are expected in some browsers/contexts
       return false;
     }
   },
   removeItem: (key: string): void => {
     try {
       localStorage.removeItem(key);
-    } catch (error) {
-      console.warn('localStorage.removeItem failed:', error);
+    } catch {
+      // Silent fail for localStorage - errors are expected in some browsers/contexts
     }
   },
 };
@@ -124,7 +130,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
         // Validate UUID format before querying
         if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(storedUserId)) {
-          console.warn('Invalid user ID format in storage, clearing');
+          logger.warn('Invalid user ID format in storage, clearing', { storedUserId });
           safeLocalStorage.removeItem(STORAGE_KEY_USER_ID);
           loadingUserRef.current = false;
           return;
@@ -151,7 +157,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
           safeLocalStorage.removeItem(STORAGE_KEY_USER_ID);
         }
       } catch (error) {
-        console.error('Failed to load stored user:', error);
+        logger.error('Failed to load stored user', {}, error instanceof Error ? error : undefined);
         safeLocalStorage.removeItem(STORAGE_KEY_USER_ID);
       } finally {
         loadingUserRef.current = false;
@@ -174,7 +180,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       // Filter out any null sessions from mapping errors
       setSessions(userSessions.filter((s): s is Session => s !== null));
     } catch (error) {
-      console.error('Failed to load sessions:', error);
+      logger.error(
+        'Failed to load sessions',
+        { userId },
+        error instanceof Error ? error : undefined
+      );
       setSessions([]);
     } finally {
       setIsLoadingSessions(false);
@@ -183,7 +193,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   // Login function - accepts user object directly (from authService)
   const login = useCallback(
-    async (email: string, pin: string, name?: string, user?: User) => {
+    async (_email: string, _pin: string, _name?: string, user?: User) => {
       // Prevent concurrent login attempts
       if (loginInProgress.current) {
         throw new Error('Login already in progress. Please wait.');
@@ -205,7 +215,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         setCurrentUserId(user.id);
         const stored = safeLocalStorage.setItem(STORAGE_KEY_USER_ID, user.id);
         if (!stored) {
-          console.warn('Failed to store user ID in localStorage, but continuing');
+          logger.warn('Failed to store user ID in localStorage, but continuing', {
+            userId: user.id,
+          });
         }
 
         // Update auth state
@@ -224,7 +236,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
         // Load sessions (don't await to avoid blocking)
         loadSessions(user.id).catch(error => {
-          console.error('Failed to load sessions after login:', error);
+          logger.error(
+            'Failed to load sessions after login',
+            { userId: user.id },
+            error instanceof Error ? error : undefined
+          );
         });
 
         // Close auth modal
@@ -249,6 +265,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setSelectedVoiceState('Kore');
     safeLocalStorage.removeItem(STORAGE_KEY_USER_ID);
     setModals(prev => ({ ...prev, auth: true }));
+    // Note: Active voice sessions should be disconnected by the component
+    // that manages the voice client (useSessionWorkflow)
   }, []);
 
   const openModal = useCallback((key: keyof ModalState, data?: unknown) => {
@@ -262,12 +280,12 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const setSelectedVoice = useCallback(
     async (voice: string) => {
       if (!currentUserId) {
-        console.warn('Cannot set voice: no user logged in');
+        logger.warn('Cannot set voice: no user logged in', {});
         return;
       }
 
       if (!voice || typeof voice !== 'string' || voice.trim() === '') {
-        console.warn('Invalid voice selection');
+        logger.warn('Invalid voice selection', { voice });
         return;
       }
 
@@ -276,8 +294,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
       try {
         await preferencesRepository.setSelectedVoice(currentUserId, voice);
+        logger.info('Voice preference saved', { userId: currentUserId, voice });
       } catch (error) {
-        console.error('Failed to save voice preference:', error);
+        logger.error(
+          'Failed to save voice preference',
+          { userId: currentUserId, voice },
+          error instanceof Error ? error : undefined
+        );
         // Revert on error
         setSelectedVoiceState(previousVoice);
         // Try to load saved preference
@@ -285,7 +308,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
           const saved = await preferencesRepository.getSelectedVoice(currentUserId);
           if (saved) setSelectedVoiceState(saved);
         } catch (loadError) {
-          console.error('Failed to load saved voice preference:', loadError);
+          logger.error(
+            'Failed to load saved voice preference',
+            { userId: currentUserId },
+            loadError instanceof Error ? loadError : undefined
+          );
         }
       }
     },
@@ -299,7 +326,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       audioChunks?: AudioChunk[]
     ): Promise<Session | null> => {
       if (!currentUserId) {
-        console.warn('Cannot save session: no user logged in');
+        logger.warn('Cannot save session: no user logged in', {});
         return null;
       }
 
@@ -309,48 +336,56 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
       // Check session count limit for free users
       if (!isPremium && sessions.length >= limits.maxSessions) {
-        console.warn(
-          `Session limit reached (${limits.maxSessions} sessions). Upgrade to premium for unlimited sessions.`
-        );
+        logger.warn('Session limit reached', {
+          userId: currentUserId,
+          currentCount: sessions.length,
+          maxSessions: limits.maxSessions,
+        });
         openModal('auth'); // Open auth modal to show upgrade option
         return null;
       }
 
       // Check session duration limit
       if (duration > limits.maxSessionDuration) {
-        console.warn(
-          `Session duration exceeds limit (${limits.maxSessionDuration}s). Upgrade to premium for longer sessions.`
-        );
+        logger.warn('Session duration exceeds limit', {
+          userId: currentUserId,
+          duration,
+          maxDuration: limits.maxSessionDuration,
+        });
         // Still save the session but truncate duration
         duration = limits.maxSessionDuration;
       }
 
       // Validate inputs
       if (!Array.isArray(transcript) || transcript.length === 0) {
-        console.warn('Cannot save session: empty transcript');
+        logger.warn('Cannot save session: empty transcript', { userId: currentUserId });
         return null;
       }
 
       if (typeof duration !== 'number' || !isFinite(duration) || duration < 0) {
-        console.warn('Cannot save session: invalid duration');
+        logger.warn('Cannot save session: invalid duration', { userId: currentUserId, duration });
         return null;
       }
 
       try {
-        const newSession = await createSessionAPI(
-          currentUserId,
-          transcript,
-          duration,
-          audioChunks
-        );
+        const newSession = await createSessionAPI(currentUserId, transcript, duration, audioChunks);
 
         if (newSession) {
           setSessions(prev => [newSession, ...prev]);
+          logger.info('Session saved successfully', {
+            userId: currentUserId,
+            sessionId: newSession.id,
+            duration,
+          });
         }
 
         return newSession;
       } catch (error) {
-        console.error('Failed to save session:', error);
+        logger.error(
+          'Failed to save session',
+          { userId: currentUserId, duration },
+          error instanceof Error ? error : undefined
+        );
         return null;
       }
     },
@@ -360,12 +395,12 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const updateSession = useCallback(
     async (id: string, updates: Partial<Session>) => {
       if (!currentUserId) {
-        console.warn('Cannot update session: no user logged in');
+        logger.warn('Cannot update session: no user logged in', {});
         return;
       }
 
       if (!id || id.trim() === '') {
-        console.warn('Cannot update session: invalid session ID');
+        logger.warn('Cannot update session: invalid session ID', { sessionId: id });
         return;
       }
 
@@ -373,9 +408,14 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         const updated = await updateSessionAPI(currentUserId, id, updates);
         if (updated) {
           setSessions(prev => prev.map(s => (s.id === id ? updated : s)));
+          logger.info('Session updated successfully', { userId: currentUserId, sessionId: id });
         }
       } catch (error) {
-        console.error('Failed to update session:', error);
+        logger.error(
+          'Failed to update session',
+          { userId: currentUserId, sessionId: id },
+          error instanceof Error ? error : undefined
+        );
       }
     },
     [currentUserId]

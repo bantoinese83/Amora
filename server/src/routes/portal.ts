@@ -6,6 +6,7 @@
 import { Router, Request, Response } from 'express';
 import Stripe from 'stripe';
 import { StripePortalSessionParams } from '../types/index.js';
+import { logger } from '../utils/logger';
 
 const router = Router();
 
@@ -37,7 +38,7 @@ router.post('/create-portal-session', async (req: Request, res: Response) => {
           stripeCustomerId = user.stripe_customer_id;
         }
       } catch (error) {
-        console.warn('Failed to get user Stripe customer ID:', error);
+        logger.warn('Failed to get user Stripe customer ID', { userId }, error instanceof Error ? error : undefined);
       }
     }
 
@@ -55,7 +56,7 @@ router.post('/create-portal-session', async (req: Request, res: Response) => {
     }
 
     if (!customer) {
-      console.error('Customer not found:', { userId, customerId, customerEmail, stripeCustomerId });
+      logger.error('Customer not found for portal session', { userId, customerId, customerEmail, stripeCustomerId });
       
       // If user is marked as premium but has no Stripe customer, they need to subscribe
       if (userId) {
@@ -71,7 +72,7 @@ router.post('/create-portal-session', async (req: Request, res: Response) => {
             });
           }
         } catch (error) {
-          console.warn('Failed to check user premium status:', error);
+          logger.warn('Failed to check user premium status', { userId }, error instanceof Error ? error : undefined);
         }
       }
       
@@ -87,7 +88,7 @@ router.post('/create-portal-session', async (req: Request, res: Response) => {
     });
 
     if (subscriptions.data.length === 0) {
-      console.warn('Customer has no subscriptions:', customer.id);
+      logger.warn('Customer has no subscriptions', { customerId: customer.id });
       return res.status(400).json({
         error: 'No active subscription found. Please subscribe to Amora Premium first.',
       });
@@ -99,12 +100,11 @@ router.post('/create-portal-session', async (req: Request, res: Response) => {
       return_url: returnUrl,
     });
 
-    console.log('Portal session created successfully for customer:', customer.id);
+    logger.info('Portal session created successfully', { customerId: customer.id, userId });
     res.json({ url: session.url });
   } catch (error) {
-    console.error('Error creating portal session:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Failed to create portal session';
-    res.status(500).json({ error: errorMessage });
+    logger.error('Error creating portal session', { userId, customerEmail }, error instanceof Error ? error : undefined);
+    res.status(500).json({ error: "We couldn't open subscription management. Please try again." });
   }
 });
 

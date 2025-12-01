@@ -6,6 +6,7 @@
 
 import bcrypt from 'bcryptjs';
 import { executeQuery, executeQueryOne, validateUUID } from '../services/databaseService';
+import { logger } from '../utils/logger';
 
 export interface User {
   id: string;
@@ -131,7 +132,11 @@ class UserRepository {
         );
       } catch (prefError) {
         // Log but don't fail user creation if preferences fail
-        console.warn('Failed to create user preferences:', prefError);
+        logger.warn(
+          'Failed to create user preferences',
+          { userId: userResult.id },
+          prefError instanceof Error ? prefError : undefined
+        );
         // User can still use the app, preferences will be created on first access
       }
 
@@ -189,7 +194,11 @@ class UserRepository {
         isValid = await bcrypt.compare(pin, user.pin_hash);
       } catch (error) {
         // Log but don't expose bcrypt errors
-        console.error('PIN verification error:', error);
+        logger.error(
+          'PIN verification error',
+          { email },
+          error instanceof Error ? error : undefined
+        );
         return null;
       }
 
@@ -201,7 +210,7 @@ class UserRepository {
       const { pin_hash, ...userWithoutPin } = user;
       return userWithoutPin;
     } catch (error) {
-      console.error('Authentication error:', error);
+      logger.error('Authentication error', { email }, error instanceof Error ? error : undefined);
       // Don't expose database errors to user
       return null;
     }
@@ -229,7 +238,11 @@ class UserRepository {
         [userId]
       );
     } catch (error) {
-      console.error('Failed to get user by ID:', error);
+      logger.error(
+        'Failed to get user by ID',
+        { userId },
+        error instanceof Error ? error : undefined
+      );
       return null;
     }
   }
@@ -260,7 +273,11 @@ class UserRepository {
 
       return result;
     } catch (error) {
-      console.error('Failed to get user with preferences:', error);
+      logger.error(
+        'Failed to get user with preferences',
+        { userId },
+        error instanceof Error ? error : undefined
+      );
       return null;
     }
   }
@@ -339,7 +356,11 @@ class UserRepository {
       return result?.exists === true;
     } catch (error) {
       // Return false on error to allow signup flow to proceed
-      console.error('Failed to check email existence:', error);
+      logger.error(
+        'Failed to check email existence',
+        { email },
+        error instanceof Error ? error : undefined
+      );
       return false;
     }
   }

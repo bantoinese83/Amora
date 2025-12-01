@@ -4,6 +4,7 @@
  */
 
 import { userRepository } from '../repositories/userRepository';
+import { logger } from '../utils/logger';
 
 export interface SubscriptionStatus {
   isActive: boolean;
@@ -31,7 +32,11 @@ export async function checkSubscriptionStatus(userId: string): Promise<Subscript
       // For now, we rely on the database premium status
     };
   } catch (error) {
-    console.error('Failed to check subscription status:', error);
+    logger.error(
+      'Failed to check subscription status',
+      { userId },
+      error instanceof Error ? error : undefined
+    );
     return { isActive: false };
   }
 }
@@ -42,8 +47,13 @@ export async function checkSubscriptionStatus(userId: string): Promise<Subscript
 export async function updatePremiumStatus(userId: string, isPremium: boolean): Promise<void> {
   try {
     await userRepository.updatePremiumStatus(userId, isPremium);
+    logger.info('Premium status updated', { userId, isPremium });
   } catch (error) {
-    console.error('Failed to update premium status:', error);
+    logger.error(
+      'Failed to update premium status',
+      { userId, isPremium },
+      error instanceof Error ? error : undefined
+    );
     throw error;
   }
 }

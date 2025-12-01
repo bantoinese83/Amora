@@ -5,6 +5,7 @@
  */
 
 import { loadStripe, Stripe } from '@stripe/stripe-js';
+import { logger } from '../utils/logger';
 
 // Stripe Price IDs - Set these in your .env file
 export const STRIPE_PRICE_IDS = {
@@ -26,7 +27,7 @@ export function getStripe(): Promise<Stripe | null> {
   if (!stripePromise) {
     const publishableKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
     if (!publishableKey) {
-      console.warn('Stripe publishable key not found. Payment features will be disabled.');
+      logger.warn('Stripe publishable key not found', {});
       return Promise.resolve(null);
     }
     stripePromise = loadStripe(publishableKey);
@@ -80,8 +81,16 @@ export async function createCheckoutSession(
       url: paymentLink,
     };
   } catch (error) {
-    console.error('Error creating checkout session:', error);
-    throw error;
+    logger.error(
+      'Checkout session creation failed',
+      { priceId: params.priceId },
+      error instanceof Error ? error : undefined
+    );
+    const userMessage =
+      error instanceof Error
+        ? error.message
+        : "We couldn't start the payment process. Please try again.";
+    throw new Error(userMessage);
   }
 }
 
@@ -146,7 +155,8 @@ export async function createPortalSession(
   params: CreatePortalSessionParams
 ): Promise<{ url: string } | null> {
   try {
-    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'https://amora-server-production.up.railway.app';
+    const backendUrl =
+      import.meta.env.VITE_BACKEND_URL || 'https://amora-server-production.up.railway.app';
 
     // Use backend API
     const response = await fetch(`${backendUrl}/api/create-portal-session`, {
@@ -176,8 +186,16 @@ export async function createPortalSession(
 
     return { url: data.url };
   } catch (error) {
-    console.error('Error creating portal session:', error);
-    throw error;
+    logger.error(
+      'Portal session creation failed',
+      { customerEmail: params.customerEmail },
+      error instanceof Error ? error : undefined
+    );
+    const userMessage =
+      error instanceof Error
+        ? error.message
+        : "We couldn't open subscription management. Please try again.";
+    throw new Error(userMessage);
   }
 }
 

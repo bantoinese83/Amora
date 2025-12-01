@@ -4,6 +4,7 @@
  */
 
 import { Session, MessageLog, AudioChunk } from '../types';
+import { logger } from '../utils/logger';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://amora-server-production.up.railway.app';
 
@@ -21,14 +22,25 @@ export async function getSessions(userId: string): Promise<Session[]> {
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.error || 'Failed to get sessions');
+      const userMessage = error.error || "We couldn't load your conversations. Please try again.";
+      logger.error(
+        'Get sessions failed',
+        { userId, status: response.status },
+        error instanceof Error ? error : undefined
+      );
+      throw new Error(userMessage);
     }
 
     const data = await response.json();
+    logger.info('Sessions loaded', { userId, count: data.sessions?.length || 0 });
     return data.sessions || [];
   } catch (error) {
-    console.error('Error getting sessions:', error);
-    throw error;
+    logger.error('Get sessions error', { userId }, error instanceof Error ? error : undefined);
+    const userMessage =
+      error instanceof Error
+        ? error.message
+        : "We couldn't load your conversations. Please try again.";
+    throw new Error(userMessage);
   }
 }
 
@@ -49,14 +61,28 @@ export async function getSession(userId: string, sessionId: string): Promise<Ses
         return null;
       }
       const error = await response.json();
-      throw new Error(error.error || 'Failed to get session');
+      const userMessage = error.error || "We couldn't load this conversation. Please try again.";
+      logger.error(
+        'Get session failed',
+        { userId, sessionId, status: response.status },
+        error instanceof Error ? error : undefined
+      );
+      throw new Error(userMessage);
     }
 
     const data = await response.json();
     return data.session || null;
   } catch (error) {
-    console.error('Error getting session:', error);
-    throw error;
+    logger.error(
+      'Get session error',
+      { userId, sessionId },
+      error instanceof Error ? error : undefined
+    );
+    const userMessage =
+      error instanceof Error
+        ? error.message
+        : "We couldn't load this conversation. Please try again.";
+    throw new Error(userMessage);
   }
 }
 
@@ -82,13 +108,15 @@ export async function createSession(
     // If payload is too large, send without audio chunks
     let finalPayload = payload;
     if (payloadSize > maxSize && audioChunks) {
-      console.warn(
-        `Session payload too large (${(payloadSize / 1024 / 1024).toFixed(2)}MB). Saving without audio chunks.`
-      );
+      logger.warn('Session payload too large, omitting audio', {
+        userId,
+        payloadSizeMB: (payloadSize / 1024 / 1024).toFixed(2),
+        maxSizeMB: (maxSize / 1024 / 1024).toFixed(2),
+      });
       finalPayload = {
         transcript,
         durationSeconds,
-        // Omit audioChunks
+        audioChunks: undefined, // Explicitly set to undefined when omitted
       };
     }
 
@@ -102,30 +130,45 @@ export async function createSession(
 
     if (!response.ok) {
       // Try to parse error, but handle HTML responses (413 errors sometimes return HTML)
-      let errorMessage = 'Failed to create session';
+      let userMessage = "We couldn't save your conversation. Please try again.";
       try {
         const errorData = await response.json();
-        errorMessage = errorData.error || errorMessage;
+        userMessage = errorData.error || userMessage;
       } catch {
-        // If response is not JSON (e.g., HTML error page), use status text
-        errorMessage = response.status === 413
-          ? 'Session data is too large. Saving without audio playback.'
-          : `Server error: ${response.status} ${response.statusText}`;
+        // If response is not JSON (e.g., HTML error page), use user-friendly message
+        userMessage =
+          response.status === 413
+            ? "Your conversation was saved, but audio playback isn't available for this session."
+            : "We couldn't save your conversation. Please try again.";
       }
-      throw new Error(errorMessage);
+      logger.error('Create session failed', { userId, status: response.status, durationSeconds });
+      throw new Error(userMessage);
     }
 
     const data = await response.json();
-    
+
     // Log warning if audio was omitted
     if (data.warning) {
-      console.warn(data.warning);
+      logger.warn('Session saved without audio', { userId, sessionId: data.session?.id });
     }
-    
+
+    logger.info('Session created successfully', {
+      userId,
+      sessionId: data.session?.id,
+      durationSeconds,
+    });
     return data.session;
   } catch (error) {
-    console.error('Error creating session:', error);
-    throw error;
+    logger.error(
+      'Create session error',
+      { userId, durationSeconds },
+      error instanceof Error ? error : undefined
+    );
+    const userMessage =
+      error instanceof Error
+        ? error.message
+        : "We couldn't save your conversation. Please try again.";
+    throw new Error(userMessage);
   }
 }
 
@@ -148,14 +191,29 @@ export async function updateSession(
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.error || 'Failed to update session');
+      const userMessage = error.error || "We couldn't update your conversation. Please try again.";
+      logger.error(
+        'Update session failed',
+        { userId, sessionId, status: response.status },
+        error instanceof Error ? error : undefined
+      );
+      throw new Error(userMessage);
     }
 
     const data = await response.json();
+    logger.info('Session updated successfully', { userId, sessionId });
     return data.session;
   } catch (error) {
-    console.error('Error updating session:', error);
-    throw error;
+    logger.error(
+      'Update session error',
+      { userId, sessionId },
+      error instanceof Error ? error : undefined
+    );
+    const userMessage =
+      error instanceof Error
+        ? error.message
+        : "We couldn't update your conversation. Please try again.";
+    throw new Error(userMessage);
   }
 }
 
@@ -173,14 +231,28 @@ export async function deleteSession(userId: string, sessionId: string): Promise<
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.error || 'Failed to delete session');
+      const userMessage = error.error || "We couldn't delete this conversation. Please try again.";
+      logger.error(
+        'Delete session failed',
+        { userId, sessionId, status: response.status },
+        error instanceof Error ? error : undefined
+      );
+      throw new Error(userMessage);
     }
 
     const data = await response.json();
+    logger.info('Session deleted successfully', { userId, sessionId });
     return data.success === true;
   } catch (error) {
-    console.error('Error deleting session:', error);
-    throw error;
+    logger.error(
+      'Delete session error',
+      { userId, sessionId },
+      error instanceof Error ? error : undefined
+    );
+    const userMessage =
+      error instanceof Error
+        ? error.message
+        : "We couldn't delete this conversation. Please try again.";
+    throw new Error(userMessage);
   }
 }
-

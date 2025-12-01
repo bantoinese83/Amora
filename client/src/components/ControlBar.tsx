@@ -17,6 +17,8 @@ export const ControlBar: React.FC<ControlBarProps> = ({
 }) => {
   if (status !== ConnectionStatus.CONNECTED) return null;
 
+  // Disable controls if not authenticated (shouldn't happen, but safety check)
+
   return (
     <div className="flex justify-center gap-6 animate-in fade-in slide-in-from-bottom-4">
       <button

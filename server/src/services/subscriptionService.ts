@@ -4,6 +4,7 @@
  */
 
 import { userRepository } from '../../../shared/dist/src/repositories/userRepository.js';
+import { logger } from '../utils/logger';
 
 /**
  * Update user premium status
@@ -11,8 +12,9 @@ import { userRepository } from '../../../shared/dist/src/repositories/userReposi
 export async function updatePremiumStatus(userId: string, isPremium: boolean): Promise<void> {
   try {
     await userRepository.updatePremiumStatus(userId, isPremium);
+    logger.info('Premium status updated', { userId, isPremium });
   } catch (error) {
-    console.error('Failed to update premium status:', error);
+    logger.error('Failed to update premium status', { userId, isPremium }, error instanceof Error ? error : undefined);
     throw error;
   }
 }

@@ -1,23 +1,29 @@
 import { GoogleGenAI, Type } from '@google/genai';
 import { MessageLog, SessionAnalysis } from '../types';
+import { logger } from '../utils/logger';
 
 export class AnalysisService {
   private ai: GoogleGenAI;
 
   constructor() {
-    const apiKey = import.meta.env.VITE_GEMINI_API_KEY || (process.env.API_KEY as string | undefined);
+    const apiKey =
+      import.meta.env.VITE_GEMINI_API_KEY || (process.env.API_KEY as string | undefined);
     if (!apiKey) {
-      const error = new Error('VITE_GEMINI_API_KEY is required. Please set it in your environment variables.');
-      console.error('AnalysisService API Key Error:', {
+      const error = new Error(
+        'VITE_GEMINI_API_KEY is required. Please set it in your environment variables.'
+      );
+      logger.error('AnalysisService API key missing', {
         hasViteKey: !!import.meta.env.VITE_GEMINI_API_KEY,
         hasProcessKey: !!process.env.API_KEY,
         viteKeyLength: import.meta.env.VITE_GEMINI_API_KEY?.length || 0,
         processKeyLength: (process.env.API_KEY as string | undefined)?.length || 0,
-        envKeys: Object.keys(import.meta.env).filter(k => k.includes('GEMINI') || k.includes('API')),
+        envKeys: Object.keys(import.meta.env).filter(
+          k => k.includes('GEMINI') || k.includes('API')
+        ),
       });
       throw error;
     }
-    console.log('AnalysisService: Initializing GoogleGenAI with API key (length:', apiKey.length, ', first 10 chars:', apiKey.substring(0, 10), '...)');
+    logger.debug('AnalysisService initializing', { apiKeyLength: apiKey.length });
     this.ai = new GoogleGenAI({ apiKey });
   }
 
@@ -103,7 +109,8 @@ Return a JSON object with the following structure:
 
     try {
       // Re-check API key before making request (in case it was updated)
-      const apiKey = import.meta.env.VITE_GEMINI_API_KEY || (process.env.API_KEY as string | undefined);
+      const apiKey =
+        import.meta.env.VITE_GEMINI_API_KEY || (process.env.API_KEY as string | undefined);
       if (!apiKey) {
         throw new Error('API key not available for analysis');
       }
@@ -142,7 +149,11 @@ Return a JSON object with the following structure:
 
       return JSON.parse(text) as SessionAnalysis;
     } catch (error) {
-      console.error('Analysis generation failed:', error);
+      logger.error(
+        'Analysis generation failed',
+        { transcriptLength: transcript.length },
+        error instanceof Error ? error : undefined
+      );
       // Fallback for UI if generation fails
       return {
         title: 'Daily Reflection',

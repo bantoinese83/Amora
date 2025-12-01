@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from './common/Button';
 import { Card } from './common/Card';
+import { CheckCircleIcon } from './common/Icons';
 import {
   getStripe,
   createCheckoutSession,
@@ -21,7 +22,7 @@ export const PaymentCheckout: React.FC<PaymentCheckoutProps> = ({
   userId,
 }) => {
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'yearly'>('monthly');
+  const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'yearly'>('yearly');
   const [error, setError] = useState<string | null>(null);
 
   const handleCheckout = async (priceId: string) => {
@@ -59,92 +60,211 @@ export const PaymentCheckout: React.FC<PaymentCheckoutProps> = ({
     }
   };
 
+  const plans = {
+    monthly: {
+      price: '$9.99',
+      period: 'per month',
+      priceId: STRIPE_PRICE_IDS.monthly,
+      savings: null,
+    },
+    yearly: {
+      price: '$99.99',
+      period: 'per year',
+      priceId: STRIPE_PRICE_IDS.yearly,
+      savings: 'Save 17%',
+      monthlyEquivalent: '$8.33/month',
+    },
+  };
+
+  const features = [
+    'Unlimited voice sessions',
+    'AI-powered insights and analysis',
+    'Knowledge base integration',
+    'Priority support',
+  ];
+
   return (
-    <div className="space-y-6">
-      <div className="text-center">
-        <h3 className="text-xl font-bold text-white mb-2">Choose Your Plan</h3>
-        <p className="text-slate-400 text-sm">Unlock unlimited sessions and premium features</p>
+    <div className="w-full max-w-md mx-auto space-y-6">
+      {/* Header */}
+      <div className="text-center space-y-2">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-amora-500 to-pink-500 mb-4 shadow-lg shadow-amora-500/25">
+          <svg
+            className="w-8 h-8 text-white"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        <h2 className="text-3xl font-bold text-white">Choose Your Plan</h2>
+        <p className="text-slate-400 text-sm leading-relaxed">
+          Unlock unlimited sessions and premium features
+        </p>
       </div>
 
       {/* Plan Selection */}
-      <div className="flex gap-3">
-        <Card
+      <div className="grid grid-cols-2 gap-4">
+        {/* Monthly Plan */}
+        <button
           onClick={() => setSelectedPlan('monthly')}
-          className={`cursor-pointer transition-all ${
+          disabled={isLoading}
+          className={`relative p-5 rounded-2xl border-2 transition-all duration-300 text-left ${
             selectedPlan === 'monthly'
-              ? 'border-amora-500 bg-amora-900/20'
-              : 'border-slate-700 hover:border-slate-600'
-          }`}
+              ? 'border-amora-500 bg-gradient-to-br from-amora-900/30 to-amora-800/20 shadow-lg shadow-amora-500/20 scale-105'
+              : 'border-slate-700 bg-slate-800/40 hover:border-slate-600 hover:bg-slate-800/60'
+          } ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
         >
-          <div className="text-center">
-            <div className="text-2xl font-bold text-white mb-1">$9.99</div>
-            <div className="text-sm text-slate-400">per month</div>
+          <div className="space-y-2">
+            <div className="flex items-baseline gap-1">
+              <span className="text-3xl font-bold text-white">{plans.monthly.price}</span>
+            </div>
+            <p className="text-sm text-slate-400">{plans.monthly.period}</p>
           </div>
-        </Card>
-        <Card
+          {selectedPlan === 'monthly' && (
+            <div className="absolute top-3 right-3">
+              <div className="w-5 h-5 rounded-full bg-amora-500 flex items-center justify-center">
+                <CheckCircleIcon className="w-3 h-3 text-white" />
+              </div>
+            </div>
+          )}
+        </button>
+
+        {/* Yearly Plan */}
+        <button
           onClick={() => setSelectedPlan('yearly')}
-          className={`cursor-pointer transition-all ${
+          disabled={isLoading}
+          className={`relative p-5 rounded-2xl border-2 transition-all duration-300 text-left ${
             selectedPlan === 'yearly'
-              ? 'border-amora-500 bg-amora-900/20'
-              : 'border-slate-700 hover:border-slate-600'
-          }`}
+              ? 'border-amora-500 bg-gradient-to-br from-amora-900/30 to-amora-800/20 shadow-lg shadow-amora-500/20 scale-105'
+              : 'border-slate-700 bg-slate-800/40 hover:border-slate-600 hover:bg-slate-800/60'
+          } ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
         >
-          <div className="text-center">
-            <div className="text-2xl font-bold text-white mb-1">$99.99</div>
-            <div className="text-sm text-slate-400">per year</div>
-            <div className="text-xs text-green-400 mt-1">Save 17%</div>
+          {plans.yearly.savings && (
+            <div className="absolute -top-2 -right-2">
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-500/20 text-green-400 border border-green-500/30">
+                {plans.yearly.savings}
+              </span>
+            </div>
+          )}
+          <div className="space-y-2">
+            <div className="flex items-baseline gap-1">
+              <span className="text-3xl font-bold text-white">{plans.yearly.price}</span>
+            </div>
+            <p className="text-sm text-slate-400">{plans.yearly.period}</p>
+            {plans.yearly.monthlyEquivalent && (
+              <p className="text-xs text-amora-300 font-medium">{plans.yearly.monthlyEquivalent}</p>
+            )}
           </div>
-        </Card>
+          {selectedPlan === 'yearly' && (
+            <div className="absolute top-3 right-3">
+              <div className="w-5 h-5 rounded-full bg-amora-500 flex items-center justify-center">
+                <CheckCircleIcon className="w-3 h-3 text-white" />
+              </div>
+            </div>
+          )}
+        </button>
       </div>
 
       {/* Features List */}
-      <Card className="bg-slate-800/50">
-        <ul className="space-y-2 text-sm text-slate-300">
-          <li className="flex items-center gap-2">
-            <span className="text-green-400">✓</span>
-            <span>Unlimited voice sessions</span>
-          </li>
-          <li className="flex items-center gap-2">
-            <span className="text-green-400">✓</span>
-            <span>AI-powered insights and analysis</span>
-          </li>
-          <li className="flex items-center gap-2">
-            <span className="text-green-400">✓</span>
-            <span>Knowledge base integration</span>
-          </li>
-          <li className="flex items-center gap-2">
-            <span className="text-green-400">✓</span>
-            <span>Priority support</span>
-          </li>
-        </ul>
+      <Card className="bg-gradient-to-br from-slate-800/60 to-slate-900/60 border-slate-700/50 p-5">
+        <div className="space-y-3">
+          {features.map((feature, index) => (
+            <div
+              key={index}
+              className="flex items-start gap-3 animate-in fade-in"
+              style={{ animationDelay: `${index * 50}ms` }}
+            >
+              <div className="flex-shrink-0 mt-0.5">
+                <div className="w-5 h-5 rounded-full bg-green-500/20 border border-green-500/30 flex items-center justify-center">
+                  <CheckCircleIcon className="w-3.5 h-3.5 text-green-400" />
+                </div>
+              </div>
+              <span className="text-sm text-slate-200 leading-relaxed">{feature}</span>
+            </div>
+          ))}
+        </div>
       </Card>
 
       {/* Error Message */}
       {error && (
-        <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 text-sm text-red-400 text-center">
-          {error}
+        <div
+          className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 text-sm text-red-400 text-center animate-in fade-in slide-in-from-top-4"
+          role="alert"
+        >
+          <div className="flex items-center justify-center gap-2">
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <span>{error}</span>
+          </div>
         </div>
       )}
 
       {/* Action Buttons */}
-      <div className="flex gap-3">
-        <Button onClick={onCancel} variant="ghost" fullWidth disabled={isLoading}>
-          Cancel
-        </Button>
+      <div className="space-y-3 pt-2">
         <Button
-          onClick={() => handleCheckout(STRIPE_PRICE_IDS[selectedPlan])}
+          onClick={() => handleCheckout(plans[selectedPlan].priceId)}
           fullWidth
           disabled={isLoading}
+          className="text-base py-4 font-semibold shadow-lg shadow-amora-500/25 hover:shadow-xl hover:shadow-amora-500/30"
         >
-          {isLoading
-            ? 'Processing...'
-            : `Subscribe ${selectedPlan === 'monthly' ? 'Monthly' : 'Yearly'}`}
+          {isLoading ? (
+            <span className="flex items-center justify-center gap-2">
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              Processing...
+            </span>
+          ) : (
+            `Subscribe ${selectedPlan === 'monthly' ? 'Monthly' : 'Yearly'}`
+          )}
+        </Button>
+        <Button
+          onClick={onCancel}
+          variant="ghost"
+          fullWidth
+          disabled={isLoading}
+          className="text-sm"
+        >
+          Cancel
         </Button>
       </div>
 
-      <p className="text-xs text-slate-500 text-center">
-        Secure payment powered by Stripe. Cancel anytime.
-      </p>
+      {/* Trust Badge */}
+      <div className="pt-2">
+        <p className="text-xs text-slate-500 text-center leading-relaxed">
+          <span className="inline-flex items-center gap-1.5">
+            <svg
+              className="w-4 h-4 text-slate-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+              />
+            </svg>
+            Secure payment powered by Stripe
+          </span>
+          <span className="mx-2">•</span>
+          <span>Cancel anytime</span>
+        </p>
+      </div>
     </div>
   );
 };

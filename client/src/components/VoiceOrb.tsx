@@ -9,9 +9,15 @@ interface VoiceOrbProps {
   status: ConnectionStatus;
   audioRef: React.MutableRefObject<AudioData>;
   onClick: () => void;
+  isAuthenticated?: boolean;
 }
 
-export const VoiceOrb: React.FC<VoiceOrbProps> = ({ status, audioRef, onClick }) => {
+export const VoiceOrb: React.FC<VoiceOrbProps> = ({
+  status,
+  audioRef,
+  onClick,
+  isAuthenticated = true,
+}) => {
   const isConnected = status === ConnectionStatus.CONNECTED;
   const isConnecting = status === ConnectionStatus.CONNECTING;
   const isError = status === ConnectionStatus.ERROR;
@@ -94,15 +100,17 @@ export const VoiceOrb: React.FC<VoiceOrbProps> = ({ status, audioRef, onClick })
       <div
         id="onboarding-orb"
         ref={orbRef}
-        onClick={onClick}
+        onClick={isAuthenticated ? onClick : undefined}
         className={`
-          w-48 h-48 rounded-full flex items-center justify-center cursor-pointer 
+          w-48 h-48 rounded-full flex items-center justify-center 
           relative z-10 shadow-2xl overflow-hidden
           transition-all duration-500 ease-out
           ${
-            isConnected
-              ? 'bg-slate-900/90 border-2 border-amora-500/50 backdrop-blur-sm'
-              : 'bg-slate-900 border-4 border-slate-700 hover:border-amora-400/50 hover:scale-105'
+            !isAuthenticated
+              ? 'bg-slate-900/50 border-4 border-slate-800 opacity-50 cursor-not-allowed'
+              : isConnected
+                ? 'bg-slate-900/90 border-2 border-amora-500/50 backdrop-blur-sm cursor-pointer'
+                : 'bg-slate-900 border-4 border-slate-700 hover:border-amora-400/50 hover:scale-105 cursor-pointer'
           }
           ${isError ? 'border-red-500 shadow-red-500/20' : ''}
         `}

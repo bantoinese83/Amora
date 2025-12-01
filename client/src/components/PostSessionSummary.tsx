@@ -6,12 +6,14 @@ import { DownloadIcon, ShareIcon } from './common/Icons';
 import { formatDuration } from '../utils/formatters';
 import { Card } from './common/Card';
 import { Button } from './common/Button';
+import { Skeleton } from './common/Skeleton';
 import { downloadTranscriptAsText } from '../utils/fileUtils';
 import { generateShareImage } from '../utils/shareUtils';
 import { SessionAnalysis } from '../types';
 import { getIconComponent } from '../utils/iconUtils';
 import { AudioPlayer } from './common/AudioPlayer';
 import { MessageBubble } from './common/MessageBubble';
+import { logger } from '../utils/logger';
 
 export const PostSessionSummary: React.FC = () => {
   const { modals, closeModal, updateSession } = useApp();
@@ -60,7 +62,11 @@ export const PostSessionSummary: React.FC = () => {
         // Persist to App Context / Storage
         updateSession(session.id, { analysis: result, preview: result.summary });
       } catch (e) {
-        console.error('Failed to generate analysis', e);
+        logger.error(
+          'Failed to generate analysis',
+          { sessionId: session.id },
+          e instanceof Error ? e : undefined
+        );
       } finally {
         setIsLoading(false);
       }
@@ -75,7 +81,7 @@ export const PostSessionSummary: React.FC = () => {
       try {
         await generateShareImage(analysis, new Date(session.date).toLocaleDateString());
       } catch (e) {
-        console.error('Share failed', e);
+        logger.error('Share failed', { sessionId: session.id }, e instanceof Error ? e : undefined);
       } finally {
         setIsSharing(false);
       }
@@ -114,9 +120,10 @@ export const PostSessionSummary: React.FC = () => {
         </div>
 
         {isLoading ? (
-          <div className="space-y-4 py-8">
-            <div className="h-24 bg-slate-800/50 rounded-xl animate-pulse"></div>
-            <div className="h-24 bg-slate-800/30 rounded-xl animate-pulse delay-75"></div>
+          <div className="space-y-4 py-8 animate-in fade-in">
+            <Skeleton variant="rectangular" height={96} className="w-full" />
+            <Skeleton variant="rectangular" height={96} className="w-full" />
+            <Skeleton variant="rectangular" height={64} className="w-full" />
           </div>
         ) : (
           <div className="space-y-3 text-left animate-in fade-in slide-in-from-bottom-4 duration-500">

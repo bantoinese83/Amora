@@ -191,8 +191,9 @@ export async function generateShareImage(
           });
           resolve();
           return;
-        } catch (e) {
-          console.warn('Share cancelled or failed, falling back to download', e);
+        } catch {
+          // User cancelled or share failed - fallback to download is expected
+          // No need to log
         }
       }
 

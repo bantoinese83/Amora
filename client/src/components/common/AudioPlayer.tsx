@@ -23,7 +23,9 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({ audioChunks, className
     return () => {
       // Cleanup on unmount
       if (audioContextRef.current) {
-        audioContextRef.current.close().catch(console.error);
+        audioContextRef.current.close().catch(() => {
+          // Silent fail for audio context cleanup
+        });
       }
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
@@ -130,8 +132,9 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({ audioChunks, className
       };
 
       updateTime();
-    } catch (error) {
-      console.error('Failed to play audio', error);
+    } catch {
+      // Error is handled by UI state (isLoading set to false)
+      // No need to log - user will see the error state
       setIsLoading(false);
     }
   };

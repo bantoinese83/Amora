@@ -3,6 +3,8 @@
  * Handles authentication API calls to the server
  */
 
+import { logger } from '../utils/logger';
+
 const API_URL = import.meta.env.VITE_API_URL || 'https://amora-server-production.up.railway.app';
 
 export interface User {
@@ -34,14 +36,25 @@ export async function checkEmail(email: string): Promise<boolean> {
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.error || 'Failed to check email');
+      const userMessage =
+        error.error || "We couldn't verify your email. Please check your connection and try again.";
+      logger.error(
+        'Email check failed',
+        { email, status: response.status },
+        error instanceof Error ? error : undefined
+      );
+      throw new Error(userMessage);
     }
 
     const data = await response.json();
     return data.exists === true;
   } catch (error) {
-    console.error('Error checking email:', error);
-    throw error;
+    logger.error('Email check error', { email }, error instanceof Error ? error : undefined);
+    const userMessage =
+      error instanceof Error
+        ? error.message
+        : "We couldn't verify your email. Please check your connection and try again.";
+    throw new Error(userMessage);
   }
 }
 
@@ -60,14 +73,23 @@ export async function signUp(email: string, pin: string, name: string): Promise<
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.error || 'Failed to create account');
+      const userMessage = error.error || "We couldn't create your account. Please try again.";
+      logger.error(
+        'Sign up failed',
+        { email, status: response.status },
+        error instanceof Error ? error : undefined
+      );
+      throw new Error(userMessage);
     }
 
     const data: AuthResponse = await response.json();
+    logger.info('User signed up successfully', { userId: data.user.id, email });
     return data.user;
   } catch (error) {
-    console.error('Error signing up:', error);
-    throw error;
+    logger.error('Sign up error', { email }, error instanceof Error ? error : undefined);
+    const userMessage =
+      error instanceof Error ? error.message : "We couldn't create your account. Please try again.";
+    throw new Error(userMessage);
   }
 }
 
@@ -86,14 +108,26 @@ export async function signIn(email: string, pin: string): Promise<User> {
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.error || 'Failed to authenticate');
+      const userMessage =
+        error.error || "We couldn't sign you in. Please check your email and PIN and try again.";
+      logger.error(
+        'Sign in failed',
+        { email, status: response.status },
+        error instanceof Error ? error : undefined
+      );
+      throw new Error(userMessage);
     }
 
     const data: AuthResponse = await response.json();
+    logger.info('User signed in successfully', { userId: data.user.id, email });
     return data.user;
   } catch (error) {
-    console.error('Error signing in:', error);
-    throw error;
+    logger.error('Sign in error', { email }, error instanceof Error ? error : undefined);
+    const userMessage =
+      error instanceof Error
+        ? error.message
+        : "We couldn't sign you in. Please check your email and PIN and try again.";
+    throw new Error(userMessage);
   }
 }
 
@@ -111,14 +145,24 @@ export async function getUser(userId: string): Promise<User> {
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.error || 'Failed to get user');
+      const userMessage =
+        error.error || "We couldn't load your account information. Please try again.";
+      logger.error(
+        'Get user failed',
+        { userId, status: response.status },
+        error instanceof Error ? error : undefined
+      );
+      throw new Error(userMessage);
     }
 
     const data: AuthResponse = await response.json();
     return data.user;
   } catch (error) {
-    console.error('Error getting user:', error);
-    throw error;
+    logger.error('Get user error', { userId }, error instanceof Error ? error : undefined);
+    const userMessage =
+      error instanceof Error
+        ? error.message
+        : "We couldn't load your account information. Please try again.";
+    throw new Error(userMessage);
   }
 }
-

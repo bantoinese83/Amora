@@ -3,6 +3,8 @@
  * Abstracts localStorage operations to separate data access from business logic
  */
 
+import { logger } from '../utils/logger';
+
 export class StorageRepository {
   private static instance: StorageRepository;
 
@@ -20,7 +22,11 @@ export class StorageRepository {
       const data = localStorage.getItem(key);
       return data ? JSON.parse(data) : null;
     } catch (error) {
-      console.error(`Failed to get item from storage: ${key}`, error);
+      logger.debug(
+        'Failed to get item from storage',
+        { key },
+        error instanceof Error ? error : undefined
+      );
       return null;
     }
   }
@@ -29,7 +35,11 @@ export class StorageRepository {
     try {
       localStorage.setItem(key, JSON.stringify(value));
     } catch (error) {
-      console.error(`Failed to set item in storage: ${key}`, error);
+      logger.debug(
+        'Failed to set item in storage',
+        { key },
+        error instanceof Error ? error : undefined
+      );
     }
   }
 
@@ -37,7 +47,11 @@ export class StorageRepository {
     try {
       localStorage.removeItem(key);
     } catch (error) {
-      console.error(`Failed to remove item from storage: ${key}`, error);
+      logger.debug(
+        'Failed to remove item from storage',
+        { key },
+        error instanceof Error ? error : undefined
+      );
     }
   }
 
@@ -45,7 +59,11 @@ export class StorageRepository {
     try {
       return localStorage.getItem(key);
     } catch (error) {
-      console.error(`Failed to get string from storage: ${key}`, error);
+      logger.debug(
+        'Failed to get string from storage',
+        { key },
+        error instanceof Error ? error : undefined
+      );
       return null;
     }
   }
@@ -54,7 +72,11 @@ export class StorageRepository {
     try {
       localStorage.setItem(key, value);
     } catch (error) {
-      console.error(`Failed to set string in storage: ${key}`, error);
+      logger.debug(
+        'Failed to set string in storage',
+        { key },
+        error instanceof Error ? error : undefined
+      );
     }
   }
 }

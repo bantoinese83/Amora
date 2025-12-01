@@ -146,9 +146,10 @@ export async function executeQuery<T = unknown>(query: string, params?: unknown[
       }
 
       // Last attempt failed
-      console.error('Database query error after retries:', lastError);
+      // Note: This is a shared service, logger may not be available
+      // Error is thrown with user-friendly message
       throw new Error(
-        `Database operation failed after ${MAX_RETRIES} attempts: ${lastError.message}`
+        `We're having trouble connecting to the database. Please try again in a moment.`
       );
     }
   }

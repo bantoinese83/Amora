@@ -6,6 +6,7 @@
 import express, { Router, Request, Response } from 'express';
 import Stripe from 'stripe';
 import { userRepository } from '../../../shared/dist/src/repositories/userRepository.js';
+import { logger } from '../utils/logger';
 
 const router = Router();
 
@@ -33,7 +34,7 @@ router.post(
       event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-      console.error('Webhook signature verification failed:', errorMessage);
+      logger.error('Webhook signature verification failed', {}, err instanceof Error ? err : undefined);
       return res.status(400).json({ error: `Webhook Error: ${errorMessage}` });
     }
 
@@ -72,12 +73,12 @@ router.post(
         }
 
         default:
-          console.log(`Unhandled event type: ${event.type}`);
+          logger.info('Unhandled webhook event type', { eventType: event.type });
       }
 
       res.json({ received: true });
     } catch (error) {
-      console.error('Error processing webhook:', error);
+      logger.error('Error processing webhook', { eventType: event?.type }, error instanceof Error ? error : undefined);
       res.status(500).json({ error: 'Webhook processing failed' });
     }
   }
@@ -98,14 +99,14 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   // Get customer to find user
   const customerId = typeof session.customer === 'string' ? session.customer : session.customer?.id;
   if (!customerId) {
-    console.warn('No customer ID found in checkout session');
+    logger.warn('No customer ID found in checkout session', { sessionId: session.id });
     return;
   }
 
   // Get subscription to verify it's active
   const subscriptionId = session.subscription as string;
   if (!subscriptionId) {
-    console.warn('No subscription ID found in checkout session');
+    logger.warn('No subscription ID found in checkout session', { sessionId: session.id, customerId });
     return;
   }
 
@@ -116,9 +117,9 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       // Update by user ID (preferred)
       try {
         await userRepository.updateStripeInfo(userId, customerId, subscriptionId, true);
-        console.log(`Premium activated for user: ${userId}, customer: ${customerId}`);
+        logger.info('Premium activated for user', { userId, customerId });
       } catch (error) {
-        console.error(`Failed to update user ${userId}:`, error);
+        logger.error('Failed to update user after checkout', { userId, customerId }, error instanceof Error ? error : undefined);
         // Fallback to email lookup
         if (customerEmail) {
           await updatePremiumStatusByEmail(customerEmail, true, customerId, subscriptionId);
@@ -158,11 +159,9 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
   if (userId) {
     try {
       await userRepository.updateStripeInfo(userId, customerId, subscription.id, isActive);
-      console.log(
-        `Subscription ${subscription.status} for user: ${userId}, Premium: ${isActive}`
-      );
+      logger.info('Subscription updated', { userId, status: subscription.status, isActive });
     } catch (error) {
-      console.error(`Failed to update user ${userId}:`, error);
+      logger.error('Failed to update user subscription', { userId, subscriptionId: subscription.id }, error instanceof Error ? error : undefined);
       // Fallback to email lookup
       await updatePremiumStatusByEmail(customerEmail, isActive, customerId, subscription.id);
     }
@@ -194,9 +193,9 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
   if (userId) {
     try {
       await userRepository.updateStripeInfo(userId, customerId, undefined, false);
-      console.log(`Premium deactivated for user: ${userId}`);
+      logger.info('Premium deactivated for user', { userId });
     } catch (error) {
-      console.error(`Failed to update user ${userId}:`, error);
+      logger.error('Failed to deactivate premium for user', { userId }, error instanceof Error ? error : undefined);
       if (customerEmail) {
         await updatePremiumStatusByEmail(customerEmail, false, customerId, undefined);
       }
@@ -238,9 +237,9 @@ async function handleInvoicePaid(invoice: Stripe.Invoice) {
         subscriptionId || undefined,
         true
       );
-      console.log(`Invoice paid, premium confirmed for user: ${userId}`);
+      logger.info('Invoice paid, premium confirmed', { userId, subscriptionId });
     } catch (error) {
-      console.error(`Failed to update user ${userId}:`, error);
+      logger.error('Failed to update user after invoice paid', { userId }, error instanceof Error ? error : undefined);
       if (customerEmail) {
         await updatePremiumStatusByEmail(customerEmail, true, customerId, subscriptionId || undefined);
       }
@@ -278,9 +277,9 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
       if (userId) {
         try {
           await userRepository.updateStripeInfo(userId, customerId, subscriptionId, isActive);
-          console.log(`Payment failed for user ${userId}, Premium status: ${isActive}`);
+          logger.info('Payment failed, premium status updated', { userId, isActive });
         } catch (error) {
-          console.error(`Failed to update user ${userId}:`, error);
+          logger.error('Failed to update user after payment failed', { userId }, error instanceof Error ? error : undefined);
           await updatePremiumStatusByEmail(customerEmail, isActive, customerId, subscriptionId);
         }
       } else {
@@ -315,12 +314,12 @@ async function updatePremiumStatusByEmail(
         // Just update premium status
         await userRepository.updatePremiumStatus(user.id, isPremium);
       }
-      console.log(`Premium status updated: ${email} -> ${isPremium}`);
+      logger.info('Premium status updated by email', { email, isPremium });
     } else {
-      console.warn(`User not found for email: ${email}`);
+      logger.warn('User not found for email', { email });
     }
   } catch (error) {
-    console.error(`Failed to update premium status for ${email}:`, error);
+    logger.error('Failed to update premium status by email', { email }, error instanceof Error ? error : undefined);
     throw error;
   }
 }

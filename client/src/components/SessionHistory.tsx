@@ -7,9 +7,10 @@ import { downloadTranscriptAsText } from '../utils/fileUtils';
 import { Session } from '../types';
 import { UpgradePrompt } from './UpgradePrompt';
 import { getSubscriptionLimits } from '../services/subscriptionService';
+import { EmptyState } from './common/EmptyState';
 
 export const SessionHistory: React.FC = () => {
-  const { sessions, modals, closeModal, openModal, authState } = useApp();
+  const { sessions, modals, closeModal, openModal, authState, isLoadingSessions } = useApp();
   const isPremium = authState.user?.isPremium || false;
   const limits = getSubscriptionLimits(isPremium);
 
@@ -60,8 +61,45 @@ export const SessionHistory: React.FC = () => {
               />
             )}
 
-            {sessions.length === 0 ? (
-              <p className="text-slate-500 text-center mt-10">No conversations yet.</p>
+            {isLoadingSessions ? (
+              <div className="space-y-4 py-4">
+                {[1, 2, 3].map(i => (
+                  <Card key={i} className="animate-pulse">
+                    <div className="h-20 bg-slate-800/50 rounded-lg"></div>
+                  </Card>
+                ))}
+              </div>
+            ) : sessions.length === 0 ? (
+              <EmptyState
+                icon={
+                  <svg
+                    className="w-8 h-8"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                    />
+                  </svg>
+                }
+                title="No conversations yet"
+                description="Start your first voice session to see your conversation history here. Each session will be saved automatically."
+                action={
+                  !modals.history
+                    ? undefined
+                    : {
+                        label: 'Start a Session',
+                        onClick: () => {
+                          closeModal('history');
+                        },
+                      }
+                }
+              />
             ) : (
               sessions.map(session => (
                 <Card

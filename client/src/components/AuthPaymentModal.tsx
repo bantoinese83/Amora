@@ -5,6 +5,7 @@ import { Modal } from './common/Modal';
 import { Card } from './common/Card';
 import { Button } from './common/Button';
 import { PaymentCheckout } from './PaymentCheckout';
+import { ProgressIndicator } from './common/ProgressIndicator';
 import { checkEmail, signUp, signIn } from '../services/authService';
 import { updatePremiumStatus } from '../services/subscriptionService';
 import {
@@ -13,11 +14,12 @@ import {
   createPortalSession,
   redirectToPortal,
 } from '../services/stripeService';
+import { logger } from '../utils/logger';
 
 type AuthMode = 'email' | 'pin' | 'payment';
 
 export const AuthPaymentModal: React.FC = () => {
-  const { modals, login, authState, closeModal, openModal } = useApp();
+  const { modals, login, authState, closeModal, openModal, logout } = useApp();
   const [mode, setMode] = useState<AuthMode>('email');
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
@@ -91,7 +93,9 @@ export const AuthPaymentModal: React.FC = () => {
         emailExists = await checkEmail(trimmedEmail);
       } catch (error) {
         const errorMessage =
-          error instanceof Error ? error.message : 'Unable to verify email. Please check your connection and try again.';
+          error instanceof Error
+            ? error.message
+            : 'Unable to verify email. Please check your connection and try again.';
         setAuthError(errorMessage);
         setIsLoading(false);
         authInProgress.current = false;
@@ -198,20 +202,21 @@ export const AuthPaymentModal: React.FC = () => {
     const handlePaymentSuccess = async () => {
       const userId = authState.user?.id;
       const paymentStatus = checkPaymentStatus();
-      
+
       if (!paymentStatus?.success || !paymentStatus.sessionId) {
         return;
       }
 
       if (!userId) {
-        console.error('No user ID available for payment verification');
+        logger.error('No user ID available for payment verification', {});
         cleanupPaymentParams();
         return;
       }
 
       try {
         // Verify session with backend
-        const backendUrl = import.meta.env.VITE_BACKEND_URL || 'https://amora-server-production.up.railway.app';
+        const backendUrl =
+          import.meta.env.VITE_BACKEND_URL || 'https://amora-server-production.up.railway.app';
         const response = await fetch(`${backendUrl}/api/subscription/verify-session`, {
           method: 'POST',
           headers: {
@@ -238,14 +243,22 @@ export const AuthPaymentModal: React.FC = () => {
         cleanupPaymentParams();
         window.location.reload();
       } catch (error) {
-        console.error('Failed to verify payment session:', error);
+        logger.error(
+          'Failed to verify payment session',
+          { userId },
+          error instanceof Error ? error : undefined
+        );
         // Fallback: Update premium status directly
         try {
           await updatePremiumStatus(userId, true);
           cleanupPaymentParams();
           window.location.reload();
         } catch (fallbackError) {
-          console.error('Failed to update premium status after payment:', fallbackError);
+          logger.error(
+            'Failed to update premium status after payment',
+            { userId },
+            fallbackError instanceof Error ? fallbackError : undefined
+          );
           cleanupPaymentParams();
         }
       }
@@ -271,7 +284,7 @@ export const AuthPaymentModal: React.FC = () => {
 
   // Determine if user is premium (must be defined before useEffects that use it)
   const isPremium = authState.user?.isPremium || false;
-  
+
   // If authenticated and not premium, show payment checkout directly
   const shouldShowPayment = authState.isAuthenticated && !isPremium;
 
@@ -306,8 +319,24 @@ export const AuthPaymentModal: React.FC = () => {
     return undefined;
   }, [modals.auth, authState.isAuthenticated, mode, showPayment]);
 
+  // Determine current step for progress indicator
+  const getCurrentStep = (): number => {
+    if (!authState.isAuthenticated) {
+      if (showPayment) return 3;
+      if (mode === 'pin') return 2;
+      return 1;
+    }
+    if (authState.user?.isPremium) return 3;
+    return 2;
+  };
+
+  const authSteps = ['Email', 'PIN', 'Complete'];
+
   return (
     <Modal isOpen={modals.auth} onClose={undefined}>
+      {!authState.isAuthenticated && !showPayment && (
+        <ProgressIndicator steps={authSteps} currentStep={getCurrentStep()} className="mb-6" />
+      )}
       {!authState.isAuthenticated ? (
         showPayment ? (
           <PaymentCheckout
@@ -339,6 +368,12 @@ export const AuthPaymentModal: React.FC = () => {
 
             <form onSubmit={handleEmailSubmit} className="space-y-4">
               <div>
+                <label
+                  htmlFor="auth-email"
+                  className="block text-sm font-medium text-slate-300 mb-2"
+                >
+                  Email Address
+                </label>
                 <input
                   id="auth-email"
                   type="email"
@@ -352,12 +387,23 @@ export const AuthPaymentModal: React.FC = () => {
                       setAuthError(null);
                     }
                   }}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amora-500"
+                  className={`w-full bg-slate-800 border rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 transition-colors ${
+                    authError && email.trim() === ''
+                      ? 'border-red-500 focus:ring-red-500'
+                      : 'border-slate-700 focus:ring-amora-500 focus:border-amora-500'
+                  }`}
                   required
                   autoComplete="email"
                   disabled={isLoading}
                   maxLength={255}
+                  aria-invalid={authError ? 'true' : 'false'}
+                  aria-describedby={authError ? 'email-error' : undefined}
                 />
+                {authError && email.trim() === '' && (
+                  <p id="email-error" className="mt-1 text-xs text-red-400" role="alert">
+                    {authError}
+                  </p>
+                )}
               </div>
 
               {authError && (
@@ -395,9 +441,13 @@ export const AuthPaymentModal: React.FC = () => {
             <h2 className="text-2xl font-bold text-white mb-2">Enter Your PIN</h2>
             <p className="text-slate-400 mb-4 break-words">{email}</p>
             <div className="mb-4">
+              <label htmlFor="auth-name" className="block text-sm font-medium text-slate-300 mb-2">
+                Your Name <span className="text-slate-500 text-xs">(for new accounts)</span>
+              </label>
               <input
+                id="auth-name"
                 type="text"
-                placeholder="Your name (for new accounts)"
+                placeholder="Enter your name"
                 value={name}
                 onChange={e => {
                   const value = e.target.value;
@@ -407,14 +457,23 @@ export const AuthPaymentModal: React.FC = () => {
                     setAuthError(null);
                   }
                 }}
-                className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amora-500 mb-2"
+                className={`w-full bg-slate-800 border rounded-lg px-4 py-2 text-white placeholder-slate-500 focus:outline-none focus:ring-2 transition-colors mb-2 ${
+                  authError && name.trim() === ''
+                    ? 'border-red-500 focus:ring-red-500'
+                    : 'border-slate-700 focus:ring-amora-500 focus:border-amora-500'
+                }`}
                 autoComplete="name"
                 disabled={isLoading}
                 maxLength={255}
+                aria-invalid={authError ? 'true' : 'false'}
+                aria-describedby={authError ? 'name-error' : undefined}
               />
-              <p className="text-xs text-slate-500">
-                Enter your name if this is your first time. Existing users can leave this blank.
-              </p>
+              {authError && name.trim() === '' && (
+                <p id="name-error" className="mt-1 text-xs text-red-400" role="alert">
+                  {authError}
+                </p>
+              )}
+              <p className="text-xs text-slate-500 mt-1">Existing users can leave this blank.</p>
             </div>
             <p className="text-slate-400 mb-8">Enter your 4-digit PIN to continue</p>
 
@@ -509,15 +568,46 @@ export const AuthPaymentModal: React.FC = () => {
           </div>
         )
       ) : shouldShowPayment ? (
-        // Authenticated but NOT Premium - Show payment checkout
-        <PaymentCheckout
-          onCancel={() => {
-            // Close modal when canceling payment
-            closeModal('auth');
-          }}
-          customerEmail={authState.user?.email}
-          userId={authState.user?.id}
-        />
+        // Authenticated but NOT Premium - Show payment checkout with logout option
+        <div className="space-y-4">
+          <PaymentCheckout
+            onCancel={() => {
+              // Close modal when canceling payment
+              closeModal('auth');
+            }}
+            customerEmail={authState.user?.email}
+            userId={authState.user?.id}
+          />
+          <div className="pt-4 border-t border-slate-700/50">
+            <Button
+              onClick={() => {
+                logout();
+                closeModal('auth');
+              }}
+              variant="ghost"
+              fullWidth
+              className="text-slate-400 hover:text-red-400 hover:bg-red-500/10 border border-transparent hover:border-red-500/30"
+            >
+              <span className="flex items-center justify-center gap-2">
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                  />
+                </svg>
+                Sign Out
+              </span>
+            </Button>
+          </div>
+        </div>
       ) : isPremium ? (
         // Authenticated and Premium - Show subscription management
         <div className="text-center">
@@ -540,62 +630,102 @@ export const AuthPaymentModal: React.FC = () => {
             </div>
           </Card>
 
-          <Button
-            onClick={async () => {
-              if (isLoadingPortal) {
-                return;
-              }
-
-              setIsLoadingPortal(true);
-              try {
-                const returnUrl = window.location.origin;
-                const params = {
-                  returnUrl,
-                  ...(authState.user?.email ? { customerEmail: authState.user.email } : {}),
-                  ...(authState.user?.id ? { userId: authState.user.id } : {}),
-                } as Parameters<typeof createPortalSession>[0];
-                
-                console.log('Creating portal session with params:', { ...params, customerEmail: params.customerEmail ? '***' : undefined });
-                
-                const portalSession = await createPortalSession(params);
-
-                if (portalSession?.url) {
-                  await redirectToPortal(portalSession.url);
-                } else {
-                  throw new Error('No portal URL returned');
+          <div className="space-y-3">
+            <Button
+              onClick={async () => {
+                if (isLoadingPortal) {
+                  return;
                 }
-              } catch (error) {
-                console.error('Failed to open subscription portal:', error);
-                const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-                
-                // Provide more specific error messages
-                if (errorMessage.includes('Customer not found') || errorMessage.includes('No active subscription')) {
-                  // If user needs subscription, redirect to payment checkout
-                  // Close current modal and show payment checkout
-                  closeModal('auth');
-                  // Re-open modal - it will show PaymentCheckout for non-premium users
-                  // For premium users without customer ID, they also need to subscribe
-                  setTimeout(() => {
-                    openModal('auth');
-                  }, 100);
-                } else if (errorMessage.includes('404') || errorMessage.includes('not found')) {
-                  alert(
-                    'Subscription not found. If you recently subscribed, please wait a moment and try again.'
+
+                setIsLoadingPortal(true);
+                try {
+                  const returnUrl = window.location.origin;
+                  const params = {
+                    returnUrl,
+                    ...(authState.user?.email ? { customerEmail: authState.user.email } : {}),
+                    ...(authState.user?.id ? { userId: authState.user.id } : {}),
+                  } as Parameters<typeof createPortalSession>[0];
+
+                  logger.info('Creating portal session', {
+                    userId: params.userId,
+                    hasCustomerEmail: !!params.customerEmail,
+                  });
+
+                  const portalSession = await createPortalSession(params);
+
+                  if (portalSession?.url) {
+                    await redirectToPortal(portalSession.url);
+                  } else {
+                    throw new Error('No portal URL returned');
+                  }
+                } catch (error) {
+                  logger.error(
+                    'Failed to open subscription portal',
+                    { userId: authState.user?.id },
+                    error instanceof Error ? error : undefined
                   );
-                } else {
-                  alert(
-                    `Unable to open subscription management: ${errorMessage}. Please check your internet connection and try again.`
-                  );
+                  const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+
+                  // Provide more specific error messages
+                  if (
+                    errorMessage.includes('Customer not found') ||
+                    errorMessage.includes('No active subscription')
+                  ) {
+                    // If user needs subscription, redirect to payment checkout
+                    // Close current modal and show payment checkout
+                    closeModal('auth');
+                    // Re-open modal - it will show PaymentCheckout for non-premium users
+                    // For premium users without customer ID, they also need to subscribe
+                    setTimeout(() => {
+                      openModal('auth');
+                    }, 100);
+                  } else if (errorMessage.includes('404') || errorMessage.includes('not found')) {
+                    alert(
+                      'Subscription not found. If you recently subscribed, please wait a moment and try again.'
+                    );
+                  } else {
+                    alert(
+                      `Unable to open subscription management: ${errorMessage}. Please check your internet connection and try again.`
+                    );
+                  }
+                } finally {
+                  setIsLoadingPortal(false);
                 }
-              } finally {
-                setIsLoadingPortal(false);
-              }
-            }}
-            fullWidth
-            disabled={isLoadingPortal}
-          >
-            {isLoadingPortal ? 'Opening...' : 'Manage Subscription'}
-          </Button>
+              }}
+              fullWidth
+              disabled={isLoadingPortal}
+            >
+              {isLoadingPortal ? 'Opening...' : 'Manage Subscription'}
+            </Button>
+
+            <Button
+              onClick={() => {
+                logout();
+                closeModal('auth');
+              }}
+              variant="ghost"
+              fullWidth
+              className="text-slate-400 hover:text-red-400 hover:bg-red-500/10 border border-transparent hover:border-red-500/30"
+            >
+              <span className="flex items-center justify-center gap-2">
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                  />
+                </svg>
+                Sign Out
+              </span>
+            </Button>
+          </div>
         </div>
       ) : null}
     </Modal>

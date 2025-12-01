@@ -2,6 +2,8 @@
  * Clipboard utilities for quick copy/share functionality
  */
 
+import { logger } from './logger';
+
 export async function copyToClipboard(text: string): Promise<boolean> {
   try {
     if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -20,7 +22,7 @@ export async function copyToClipboard(text: string): Promise<boolean> {
       return success;
     }
   } catch (error) {
-    console.error('Failed to copy to clipboard:', error);
+    logger.debug('Failed to copy to clipboard', {}, error instanceof Error ? error : undefined);
     return false;
   }
 }

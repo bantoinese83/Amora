@@ -6,6 +6,7 @@
 
 import { Session, MessageLog, AudioChunk } from '../types';
 import { executeQuery, executeQueryOne, validateUUID } from '../services/databaseService';
+import { logger } from '../utils/logger';
 
 interface SessionRow {
   id: string;
@@ -114,7 +115,7 @@ function safeJSONStringify(value: unknown): string | null {
   try {
     return JSON.stringify(value);
   } catch (error) {
-    console.error('Failed to serialize JSON:', error);
+    logger.error('Failed to serialize JSON', {}, error instanceof Error ? error : undefined);
     return null;
   }
 }
@@ -131,7 +132,7 @@ class SessionRepository {
     try {
       validateUUID(userId, 'User ID');
     } catch (error) {
-      console.error('Invalid user ID:', error);
+      logger.error('Invalid user ID', { userId }, error instanceof Error ? error : undefined);
       return [];
     }
 
@@ -150,7 +151,11 @@ class SessionRepository {
         .filter((session): session is Session => session !== null);
       return mappedSessions;
     } catch (error) {
-      console.error('Failed to load sessions', error);
+      logger.error(
+        'Failed to load sessions',
+        { userId },
+        error instanceof Error ? error : undefined
+      );
       return [];
     }
   }
@@ -328,7 +333,11 @@ class SessionRepository {
 
       return result ? this.mapRowToSession(result) : null;
     } catch (error) {
-      console.error('Failed to update session:', error);
+      logger.error(
+        'Failed to update session',
+        { userId, sessionId: id },
+        error instanceof Error ? error : undefined
+      );
       return null;
     }
   }
@@ -358,7 +367,11 @@ class SessionRepository {
 
       return result ? this.mapRowToSession(result) : null;
     } catch (error) {
-      console.error('Failed to get session by ID:', error);
+      logger.error(
+        'Failed to get session by ID',
+        { userId, sessionId: id },
+        error instanceof Error ? error : undefined
+      );
       return null;
     }
   }
@@ -382,7 +395,11 @@ class SessionRepository {
       await executeQuery(`DELETE FROM sessions WHERE user_id = $1 AND id = $2`, [userId, id]);
       return true;
     } catch (error) {
-      console.error('Failed to delete session:', error);
+      logger.error(
+        'Failed to delete session',
+        { userId, sessionId: id },
+        error instanceof Error ? error : undefined
+      );
       return false;
     }
   }
@@ -409,7 +426,10 @@ class SessionRepository {
     // Validate data
     const validation = validateSessionData(transcript, duration, audioChunks);
     if (!validation.isValid) {
-      console.error('Invalid session data:', validation.error);
+      logger.error('Invalid session data', {
+        userId,
+        error: validation.error || 'Unknown validation error',
+      });
       return null;
     }
 
@@ -427,7 +447,11 @@ class SessionRepository {
     try {
       return await this.save(userId, newSession);
     } catch (error) {
-      console.error('Failed to create session from transcript:', error);
+      logger.error(
+        'Failed to create session from transcript',
+        { userId, duration },
+        error instanceof Error ? error : undefined
+      );
       return null;
     }
   }
@@ -444,7 +468,11 @@ class SessionRepository {
           try {
             transcript = JSON.parse(row.transcript);
           } catch (error) {
-            console.error('Failed to parse transcript JSON:', error);
+            logger.error(
+              'Failed to parse transcript JSON',
+              { sessionId: row.id },
+              error instanceof Error ? error : undefined
+            );
             transcript = [];
           }
         } else if (Array.isArray(row.transcript)) {
@@ -458,7 +486,11 @@ class SessionRepository {
           try {
             analysis = JSON.parse(row.analysis);
           } catch (error) {
-            console.error('Failed to parse analysis JSON:', error);
+            logger.error(
+              'Failed to parse analysis JSON',
+              { sessionId: row.id },
+              error instanceof Error ? error : undefined
+            );
           }
         } else if (typeof row.analysis === 'object') {
           analysis = row.analysis as SessionAnalysis;
@@ -471,7 +503,11 @@ class SessionRepository {
           try {
             audioChunks = JSON.parse(row.audio_chunks);
           } catch (error) {
-            console.error('Failed to parse audio chunks JSON:', error);
+            logger.error(
+              'Failed to parse audio chunks JSON',
+              { sessionId: row.id },
+              error instanceof Error ? error : undefined
+            );
           }
         } else if (Array.isArray(row.audio_chunks)) {
           audioChunks = row.audio_chunks;
@@ -499,7 +535,11 @@ class SessionRepository {
         ...(audioChunks ? { audioChunks } : {}),
       };
     } catch (error) {
-      console.error('Failed to map session row:', error);
+      logger.error(
+        'Failed to map session row',
+        { sessionId: row.id },
+        error instanceof Error ? error : undefined
+      );
       return null;
     }
   }

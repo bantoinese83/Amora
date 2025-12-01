@@ -6,6 +6,7 @@
 import { Router, Request, Response } from 'express';
 import { userRepository } from '../../../shared/dist/src/repositories/userRepository.js';
 import { preferencesRepository } from '../../../shared/dist/src/repositories/preferencesRepository.js';
+import { logger } from '../utils/logger';
 
 const router = Router();
 
@@ -23,9 +24,8 @@ router.post('/check-email', async (req: Request, res: Response) => {
     const exists = await userRepository.emailExists(email);
     res.json({ exists });
   } catch (error) {
-    console.error('Error checking email:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Failed to check email';
-    res.status(500).json({ error: errorMessage });
+    logger.error('Error checking email', { email }, error instanceof Error ? error : undefined);
+    res.status(500).json({ error: "We couldn't verify your email. Please try again." });
   }
 });
 
@@ -61,18 +61,18 @@ router.post('/signup', async (req: Request, res: Response) => {
     try {
       await preferencesRepository.initializePreferences(user.id);
     } catch (prefError) {
-      console.warn('Failed to initialize preferences:', prefError);
+      logger.warn('Failed to initialize preferences', { userId: user.id }, prefError instanceof Error ? prefError : undefined);
       // Continue even if preferences fail
     }
 
     // Get user with preferences
     const userWithPrefs = await userRepository.getUserWithPreferences(user.id);
 
+    logger.info('User signed up successfully', { userId: user.id, email });
     res.json({ user: userWithPrefs || user });
   } catch (error) {
-    console.error('Error signing up:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Failed to create account';
-    res.status(500).json({ error: errorMessage });
+    logger.error('Error signing up', { email }, error instanceof Error ? error : undefined);
+    res.status(500).json({ error: "We couldn't create your account. Please try again." });
   }
 });
 
@@ -106,11 +106,11 @@ router.post('/signin', async (req: Request, res: Response) => {
     // Get user with preferences
     const userWithPrefs = await userRepository.getUserWithPreferences(user.id);
 
+    logger.info('User signed in successfully', { userId: user.id, email });
     res.json({ user: userWithPrefs || user });
   } catch (error) {
-    console.error('Error signing in:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Failed to authenticate';
-    res.status(500).json({ error: errorMessage });
+    logger.error('Error signing in', { email }, error instanceof Error ? error : undefined);
+    res.status(500).json({ error: "We couldn't sign you in. Please check your email and PIN and try again." });
   }
 });
 
@@ -133,9 +133,8 @@ router.get('/user/:userId', async (req: Request, res: Response) => {
 
     res.json({ user });
   } catch (error) {
-    console.error('Error getting user:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Failed to get user';
-    res.status(500).json({ error: errorMessage });
+    logger.error('Error getting user', { userId }, error instanceof Error ? error : undefined);
+    res.status(500).json({ error: "We couldn't load your account information. Please try again." });
   }
 });
 

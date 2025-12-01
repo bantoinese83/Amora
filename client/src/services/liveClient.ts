@@ -2,6 +2,7 @@ import { GoogleGenAI, LiveServerMessage, Modality } from '@google/genai';
 import { createPcmBlob, decode, decodeAudioData, createAudioContext } from '../utils/audioUtils';
 import { calculateAudioVolume } from '../utils/audioAnalysis';
 import { SAMPLE_RATE_INPUT, SAMPLE_RATE_OUTPUT, BUFFER_SIZE } from '../constants';
+import { logger } from '../utils/logger';
 
 export interface LiveConfig {
   model: string;
@@ -69,17 +70,22 @@ export class LiveClient {
     onTranscription: (text: string, isUser: boolean) => void,
     onAudioChunk?: (base64Audio: string, role: 'user' | 'assistant') => void
   ) {
-    const apiKey = import.meta.env.VITE_GEMINI_API_KEY || (process.env.API_KEY as string | undefined);
+    const apiKey =
+      import.meta.env.VITE_GEMINI_API_KEY || (process.env.API_KEY as string | undefined);
     if (!apiKey) {
-      const error = new Error('VITE_GEMINI_API_KEY is required. Please set it in your environment variables.');
-      console.error('API Key Error:', {
+      const error = new Error(
+        'VITE_GEMINI_API_KEY is required. Please set it in your environment variables.'
+      );
+      logger.error('API Key missing', {
         hasViteKey: !!import.meta.env.VITE_GEMINI_API_KEY,
         hasProcessKey: !!process.env.API_KEY,
-        envKeys: Object.keys(import.meta.env).filter(k => k.includes('GEMINI') || k.includes('API')),
+        envKeys: Object.keys(import.meta.env).filter(
+          k => k.includes('GEMINI') || k.includes('API')
+        ),
       });
       throw error;
     }
-    console.log('Initializing GoogleGenAI with API key (length:', apiKey.length, ')');
+    logger.debug('Initializing GoogleGenAI', { apiKeyLength: apiKey.length });
     this.ai = new GoogleGenAI({ apiKey });
     this.onStatusChange = onStatusChange;
     this.onAudioUpdate = onAudioUpdate;
@@ -145,8 +151,8 @@ export class LiveClient {
             this.startInputStreaming(sessionPromise);
           },
           onmessage: msg => this.handleMessage(msg),
-          onclose: (event) => {
-            console.log('WebSocket closed:', {
+          onclose: event => {
+            logger.warn('WebSocket closed', {
               code: event?.code,
               reason: event?.reason,
               wasClean: event?.wasClean,
@@ -155,14 +161,14 @@ export class LiveClient {
             this.cleanup();
           },
           onerror: err => {
-            console.error('Gemini Live Error:', err);
-            // Log more details about the error
-            if (err instanceof Error) {
-              console.error('Error message:', err.message);
-              console.error('Error stack:', err.stack);
-            } else if (typeof err === 'object' && err !== null) {
-              console.error('Error details:', JSON.stringify(err, null, 2));
-            }
+            const error = err instanceof Error ? err : new Error(String(err));
+            logger.error(
+              'Gemini Live connection error',
+              {
+                errorType: err instanceof Error ? err.constructor.name : typeof err,
+              },
+              error
+            );
             this.onStatusChange('error');
             // Don't cleanup immediately - let the onclose handler do it
             // This prevents race conditions
@@ -173,7 +179,11 @@ export class LiveClient {
       this.session = sessionPromise;
     } catch (error) {
       // Connection failed - log for debugging
-      console.error('LiveClient connection error:', error);
+      logger.error(
+        'LiveClient connection failed',
+        { voiceName: config.voiceName },
+        error instanceof Error ? error : undefined
+      );
       this.onStatusChange('error');
       this.cleanup();
       throw error; // Re-throw so caller knows connection failed
@@ -259,24 +269,30 @@ export class LiveClient {
       // Create PCM blob from the audio data for API
       const pcmBlob = createPcmBlob(dataArray);
 
-      sessionPromise.then(session => {
-        try {
-          // Check if session is still valid before sending
-          if (session && typeof session.sendRealtimeInput === 'function') {
-            session.sendRealtimeInput({ media: pcmBlob });
+      sessionPromise
+        .then(session => {
+          try {
+            // Check if session is still valid before sending
+            if (session && typeof session.sendRealtimeInput === 'function') {
+              session.sendRealtimeInput({ media: pcmBlob });
+            }
+          } catch (error) {
+            // Ignore errors if session is closing/closed
+            // This is expected when disconnecting
+            if (this.session === null) {
+              // Only log if we're not intentionally disconnecting
+              logger.debug(
+                'Session send error during disconnect',
+                {},
+                error instanceof Error ? error : undefined
+              );
+            }
           }
-        } catch (error) {
-          // Ignore errors if session is closing/closed
-          // This is expected when disconnecting
-          if (this.session === null) {
-            // Only log if we're not intentionally disconnecting
-            console.debug('Session send error (expected during disconnect):', error);
-          }
-        }
-      }).catch(error => {
-        // Session promise rejected - connection failed
-        console.debug('Session promise rejected (connection failed):', error);
-      });
+        })
+        .catch(error => {
+          // Session promise rejected - connection failed
+          logger.warn('Session promise rejected', {}, error instanceof Error ? error : undefined);
+        });
 
       // Schedule next processing based on buffer duration
       this.processorInterval = window.setTimeout(
@@ -398,12 +414,20 @@ export class LiveClient {
             session.close();
           } catch (closeError) {
             // Session might already be closing/closed - ignore
-            console.debug('Session already closing/closed:', closeError);
+            logger.debug(
+              'Session already closing/closed',
+              {},
+              closeError instanceof Error ? closeError : undefined
+            );
           }
         }
       } catch (error) {
         // Session promise rejected or session not available - already disconnected
-        console.debug('Session disconnect error (expected if already disconnected):', error);
+        logger.debug(
+          'Session disconnect error (expected if already disconnected)',
+          {},
+          error instanceof Error ? error : undefined
+        );
       }
     }
     this.cleanup();
@@ -441,11 +465,23 @@ export class LiveClient {
 
     // 4. Close Audio Contexts
     if (this.inputAudioContext) {
-      this.inputAudioContext.close().catch(console.error);
+      this.inputAudioContext.close().catch(error => {
+        logger.error(
+          'Failed to close input audio context',
+          {},
+          error instanceof Error ? error : undefined
+        );
+      });
       this.inputAudioContext = null;
     }
     if (this.outputAudioContext) {
-      this.outputAudioContext.close().catch(console.error);
+      this.outputAudioContext.close().catch(error => {
+        logger.error(
+          'Failed to close output audio context',
+          {},
+          error instanceof Error ? error : undefined
+        );
+      });
       this.outputAudioContext = null;
     }
 

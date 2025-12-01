@@ -63,7 +63,12 @@ export default [
         },
       ],
       'no-unused-vars': 'off', // Use TypeScript version instead
-      'no-console': ['warn', { allow: ['warn', 'error'] }],
+      'no-console': [
+        'warn',
+        {
+          allow: ['warn', 'error', 'info', 'debug'],
+        },
+      ],
     },
     settings: {
       react: {

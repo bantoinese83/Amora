@@ -1,6 +1,7 @@
 import { Component, ErrorInfo, ReactNode } from 'react';
 import { AlertIcon } from './Icons';
 import { Button } from './Button';
+import { logger } from '../../utils/logger';
 
 interface Props {
   children: ReactNode;
@@ -22,7 +23,11 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('Uncaught error:', error, errorInfo);
+    logger.error(
+      'Uncaught error in ErrorBoundary',
+      { componentStack: errorInfo.componentStack },
+      error
+    );
   }
 
   handleReload = () => {

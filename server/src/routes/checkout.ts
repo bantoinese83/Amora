@@ -6,6 +6,7 @@
 import { Router, Request, Response } from 'express';
 import Stripe from 'stripe';
 import { StripeCheckoutSessionParams } from '../types/index.js';
+import { logger } from '../utils/logger';
 
 const router = Router();
 
@@ -61,7 +62,7 @@ router.post('/create-checkout-session', async (req: Request, res: Response) => {
           }
         }
       } catch (error) {
-        console.warn('Failed to link Stripe customer:', error);
+        logger.warn('Failed to link Stripe customer', { userId, customerEmail }, error instanceof Error ? error : undefined);
         // Continue without customer ID - Stripe will create one
       }
     }
@@ -91,11 +92,10 @@ router.post('/create-checkout-session', async (req: Request, res: Response) => {
       sessionId: session.id,
       url: session.url,
     });
+    logger.info('Checkout session created successfully', { sessionId: session.id, userId, priceId });
   } catch (error) {
-    console.error('Error creating checkout session:', error);
-    const errorMessage =
-      error instanceof Error ? error.message : 'Failed to create checkout session';
-    res.status(500).json({ error: errorMessage });
+    logger.error('Error creating checkout session', { userId, priceId }, error instanceof Error ? error : undefined);
+    res.status(500).json({ error: "We couldn't start the payment process. Please try again." });
   }
 });
 

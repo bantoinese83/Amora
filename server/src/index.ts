@@ -48,7 +48,10 @@ app.get('/health', (_req, res) => {
 // Only listen if not in Vercel serverless environment
 if (process.env.VERCEL !== '1') {
   app.listen(PORT, () => {
+    // Server startup messages - these are informational, not errors
+    // eslint-disable-next-line no-console
     console.log(`🚀 Server running on http://localhost:${PORT}`);
+    // eslint-disable-next-line no-console
     console.log(`📊 Health check: http://localhost:${PORT}/health`);
   });
 }

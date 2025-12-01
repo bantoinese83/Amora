@@ -1,3 +1,4 @@
+import React from 'react';
 import { Header } from './components/Header';
 import { TranscriptViewer } from './components/TranscriptViewer';
 import { VoiceOrb } from './components/VoiceOrb';
@@ -28,6 +29,16 @@ export default function App() {
     formattedTime,
     showTimer,
   } = useSessionWorkflow();
+
+  // Disconnect active session when user logs out
+  React.useEffect(() => {
+    if (
+      !authState.isAuthenticated &&
+      (status === ConnectionStatus.CONNECTED || status === ConnectionStatus.CONNECTING)
+    ) {
+      reset();
+    }
+  }, [authState.isAuthenticated, status, reset]);
 
   // "Wow" Factor: Keyboard Shortcuts
   useKeyboardShortcuts({
@@ -82,11 +93,21 @@ export default function App() {
         <TranscriptViewer transcripts={transcripts} status={status} />
 
         <div className="flex flex-col items-center gap-8">
-          <VoiceOrb status={status} audioRef={audioDataRef} onClick={toggleSession} />
+          <VoiceOrb
+            status={status}
+            audioRef={audioDataRef}
+            onClick={toggleSession}
+            isAuthenticated={authState.isAuthenticated}
+          />
           <StatusIndicator
             status={status}
             {...(status === ConnectionStatus.ERROR ? { onRetry: toggleSession } : {})}
           />
+          {!authState.isAuthenticated && (
+            <p className="text-sm text-slate-500 text-center animate-in fade-in">
+              Please sign in to start a voice session
+            </p>
+          )}
         </div>
       </main>
 

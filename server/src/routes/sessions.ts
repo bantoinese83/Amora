@@ -6,6 +6,7 @@
 import { Router, Request, Response } from 'express';
 import { sessionRepository } from '../../../shared/dist/src/repositories/sessionRepository.js';
 import { Session, MessageLog, AudioChunk } from '../../../shared/dist/src/types/index.js';
+import { logger } from '../utils/logger';
 
 const router = Router();
 
@@ -23,9 +24,8 @@ router.get('/user/:userId', async (req: Request, res: Response) => {
     const sessions = await sessionRepository.getAll(userId);
     res.json({ sessions });
   } catch (error) {
-    console.error('Error getting sessions:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Failed to get sessions';
-    res.status(500).json({ error: errorMessage });
+    logger.error('Error getting sessions', { userId }, error instanceof Error ? error : undefined);
+    res.status(500).json({ error: "We couldn't load your conversations. Please try again." });
   }
 });
 
@@ -48,9 +48,8 @@ router.get('/:sessionId/user/:userId', async (req: Request, res: Response) => {
 
     res.json({ session });
   } catch (error) {
-    console.error('Error getting session:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Failed to get session';
-    res.status(500).json({ error: errorMessage });
+    logger.error('Error getting session', { userId, sessionId }, error instanceof Error ? error : undefined);
+    res.status(500).json({ error: "We couldn't load this conversation. Please try again." });
   }
 });
 
@@ -78,7 +77,10 @@ router.post('/user/:userId', async (req: Request, res: Response) => {
     const payloadSize = JSON.stringify(req.body).length;
     const maxSize = 50 * 1024 * 1024; // 50MB
     if (payloadSize > maxSize) {
-      console.warn(`Session payload too large: ${(payloadSize / 1024 / 1024).toFixed(2)}MB`);
+      logger.warn('Session payload too large, omitting audio', {
+        userId,
+        payloadSizeMB: (payloadSize / 1024 / 1024).toFixed(2),
+      });
       // If audio chunks are too large, save session without audio
       const session: Session = {
         id: '',
@@ -107,11 +109,11 @@ router.post('/user/:userId', async (req: Request, res: Response) => {
     };
 
     const savedSession = await sessionRepository.save(userId, session);
+    logger.info('Session created successfully', { userId, sessionId: savedSession?.id, durationSeconds });
     res.json({ session: savedSession });
   } catch (error) {
-    console.error('Error creating session:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Failed to create session';
-    res.status(500).json({ error: errorMessage });
+    logger.error('Error creating session', { userId, durationSeconds }, error instanceof Error ? error : undefined);
+    res.status(500).json({ error: "We couldn't save your conversation. Please try again." });
   }
 });
 
@@ -133,11 +135,11 @@ router.put('/:sessionId/user/:userId', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Session not found' });
     }
 
+    logger.info('Session updated successfully', { userId, sessionId });
     res.json({ session: updatedSession });
   } catch (error) {
-    console.error('Error updating session:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Failed to update session';
-    res.status(500).json({ error: errorMessage });
+    logger.error('Error updating session', { userId, sessionId }, error instanceof Error ? error : undefined);
+    res.status(500).json({ error: "We couldn't update your conversation. Please try again." });
   }
 });
 
@@ -158,11 +160,11 @@ router.delete('/:sessionId/user/:userId', async (req: Request, res: Response) =>
       return res.status(404).json({ error: 'Session not found' });
     }
 
+    logger.info('Session deleted successfully', { userId, sessionId });
     res.json({ success: true });
   } catch (error) {
-    console.error('Error deleting session:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Failed to delete session';
-    res.status(500).json({ error: errorMessage });
+    logger.error('Error deleting session', { userId, sessionId }, error instanceof Error ? error : undefined);
+    res.status(500).json({ error: "We couldn't delete this conversation. Please try again." });
   }
 });
 

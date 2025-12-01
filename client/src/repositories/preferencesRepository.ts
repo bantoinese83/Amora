@@ -5,6 +5,7 @@
  */
 
 import { executeQuery, executeQueryOne, validateUUID } from '../services/databaseService';
+import { logger } from '../utils/logger';
 
 // Valid voice options
 const VALID_VOICES = ['Kore', 'Charon', 'Fenrir', 'Aoede', 'Puck'];
@@ -23,7 +24,7 @@ function validateVoice(voice: string): string {
   }
 
   // Return default if invalid
-  console.warn(`Invalid voice "${trimmed}", defaulting to "Kore"`);
+  logger.warn('Invalid voice, defaulting to Kore', { voice: trimmed });
   return 'Kore';
 }
 
@@ -39,7 +40,11 @@ class PreferencesRepository {
     try {
       validateUUID(userId, 'User ID');
     } catch (error) {
-      console.error('Invalid user ID for preferences:', error);
+      logger.error(
+        'Invalid user ID for preferences',
+        { userId },
+        error instanceof Error ? error : undefined
+      );
       return 'Kore';
     }
 
@@ -53,7 +58,11 @@ class PreferencesRepository {
 
       return validateVoice(result?.selected_voice || 'Kore');
     } catch (error) {
-      console.error('Failed to get selected voice:', error);
+      logger.error(
+        'Failed to get selected voice',
+        { userId },
+        error instanceof Error ? error : undefined
+      );
       return 'Kore'; // Default fallback
     }
   }
@@ -109,7 +118,11 @@ class PreferencesRepository {
       );
     } catch (error) {
       // Log but don't throw - preferences can be created later
-      console.warn('Failed to initialize preferences:', error);
+      logger.warn(
+        'Failed to initialize preferences',
+        { userId },
+        error instanceof Error ? error : undefined
+      );
     }
   }
 }

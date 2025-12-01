@@ -3,6 +3,7 @@ import { LiveClient } from '../services/liveClient';
 import { ConnectionStatus, MessageLog, AudioChunk } from '../types';
 import { MODEL_NAME, SYSTEM_INSTRUCTION } from '../constants';
 import { updateTranscripts } from '../utils/transcriptUtils';
+import { logger } from '../utils/logger';
 
 export interface AudioData {
   volume: number;
@@ -49,7 +50,11 @@ export function useVoiceClient() {
           // Small delay to ensure WebSocket is fully closed before creating new connection
           await new Promise(resolve => setTimeout(resolve, 100));
         } catch (error) {
-          console.debug('Error disconnecting previous client:', error);
+          logger.debug(
+            'Error disconnecting previous client',
+            {},
+            error instanceof Error ? error : undefined
+          );
           // Continue anyway - cleanup will happen
         }
       }
@@ -73,7 +78,11 @@ export function useVoiceClient() {
           voiceName: voiceName,
         });
       } catch (error) {
-        console.error('Failed to connect:', error);
+        logger.error(
+          'Voice client connection failed',
+          { voiceName },
+          error instanceof Error ? error : undefined
+        );
         // Cleanup on connection failure
         if (liveClientRef.current) {
           await liveClientRef.current.disconnect();

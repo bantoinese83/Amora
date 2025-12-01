@@ -91,6 +91,11 @@ export function useSessionWorkflow() {
       await completeSession(true, timeLeft);
       resetTimer();
     } else {
+      // Check authentication before starting
+      if (!authState.isAuthenticated) {
+        openModal('auth');
+        return;
+      }
       // Start
       resetRetry();
       resetTimer();
