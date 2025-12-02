@@ -65,8 +65,9 @@ export function useSessionWorkflow() {
   // Auto-retry on connection errors
   const attemptReconnect = useCallback(async () => {
     resetTimer();
-    await connect(selectedVoice);
-  }, [connect, selectedVoice, resetTimer]);
+    const userName = authState.user?.name || 'there';
+    await connect(selectedVoice, userName);
+  }, [connect, selectedVoice, resetTimer, authState.user?.name]);
 
   const { retry: autoRetry, reset: resetRetry } = useAutoRetry(attemptReconnect, {
     maxRetries: 2,
@@ -99,7 +100,8 @@ export function useSessionWorkflow() {
       // Start
       resetRetry();
       resetTimer();
-      await connect(selectedVoice);
+      const userName = authState.user?.name || 'there';
+      await connect(selectedVoice, userName);
     }
   };
 

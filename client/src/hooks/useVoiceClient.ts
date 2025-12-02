@@ -42,7 +42,7 @@ export function useVoiceClient() {
   }, []);
 
   const connect = useCallback(
-    async (voiceName: string = 'Kore') => {
+    async (voiceName: string = 'Kore', userName?: string) => {
       // Disconnect existing client if any, but wait a bit to ensure cleanup
       if (liveClientRef.current) {
         try {
@@ -76,6 +76,7 @@ export function useVoiceClient() {
           model: MODEL_NAME,
           systemInstruction: SYSTEM_INSTRUCTION,
           voiceName: voiceName,
+          userName: userName,
         });
       } catch (error) {
         logger.error(

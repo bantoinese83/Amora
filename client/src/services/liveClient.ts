@@ -8,6 +8,7 @@ export interface LiveConfig {
   model: string;
   systemInstruction: string;
   voiceName: string;
+  userName?: string; // Optional user name for personalized greeting
 }
 
 // Pure Extractor Functions (Law of Demeter)
@@ -127,14 +128,22 @@ export class LiveClient {
         },
       });
 
-      // 3. Configure session
+      // 3. Configure session with personalized system instruction if user name is provided
+      let systemInstruction = config.systemInstruction;
+      if (config.userName) {
+        // Add personalized greeting instruction to system prompt
+        systemInstruction = `${config.systemInstruction}\n\n<greeting_instruction>
+When the session first starts, immediately greet the user by name (${config.userName}) in a warm, friendly way. Say something like "Hello ${config.userName}, I'm Amora. How are you feeling today?" or similar. Keep it brief and natural.
+</greeting_instruction>`;
+      }
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const sessionConfig: any = {
         responseModalities: [Modality.AUDIO],
         speechConfig: {
           voiceConfig: { prebuiltVoiceConfig: { voiceName: config.voiceName } },
         },
-        systemInstruction: config.systemInstruction,
+        systemInstruction: systemInstruction,
         inputAudioTranscription: {},
         outputAudioTranscription: {},
         // Optimize for speed by disabling thinking budget
@@ -146,9 +155,13 @@ export class LiveClient {
         model: config.model,
         config: sessionConfig,
         callbacks: {
-          onopen: () => {
+          onopen: async () => {
             this.onStatusChange('connected');
             this.startInputStreaming(sessionPromise);
+            // Send personalized greeting after connection is established
+            if (config.userName) {
+              await this.sendGreeting(sessionPromise, config.userName);
+            }
           },
           onmessage: msg => this.handleMessage(msg),
           onclose: event => {
@@ -400,6 +413,44 @@ export class LiveClient {
 
   toggleMute(muted: boolean) {
     this.isMuted = muted;
+  }
+
+  /**
+   * Send a personalized greeting message to the user
+   * This triggers Amora to greet the user by name when the connection is established
+   * We send a silent audio trigger to prompt the AI to speak the greeting
+   */
+  private async sendGreeting(sessionPromise: Promise<any>, userName: string): Promise<void> {
+    try {
+      // Wait a brief moment for the connection to fully stabilize
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      const session = await sessionPromise;
+      if (!session || typeof session.sendRealtimeInput !== 'function') {
+        logger.warn('Cannot send greeting: session not available', {});
+        return;
+      }
+
+      // Send a minimal audio trigger to prompt the AI to speak
+      // The system instruction already includes the greeting, so this just triggers it
+      // Create a very short silent audio buffer to trigger the AI response
+      const silentAudio = new Float32Array(160); // ~10ms of silence at 16kHz
+      const pcmBlob = createPcmBlob(silentAudio);
+      
+      // Send the trigger - the AI will respond with the greeting from system instruction
+      session.sendRealtimeInput({
+        media: pcmBlob,
+      });
+
+      logger.debug('Greeting trigger sent', { userName });
+    } catch (error) {
+      logger.warn(
+        'Failed to send greeting',
+        { userName },
+        error instanceof Error ? error : undefined
+      );
+      // Don't throw - greeting failure shouldn't break the session
+    }
   }
 
   async disconnect() {
