@@ -41,7 +41,22 @@ export const SessionHistory: React.FC = () => {
       >
         <div className="p-6 h-full flex flex-col">
           <div className="flex justify-between items-center mb-8">
-            <h2 className="text-xl font-bold text-white">History</h2>
+            <div className="flex items-center gap-3">
+              <h2 className="text-xl font-bold text-white">History</h2>
+              {!isPremium && (
+                <span
+                  className={`px-2 py-0.5 border text-xs rounded-full transition-colors ${
+                    sessions.length >= limits.maxSessions
+                      ? 'bg-red-500/10 border-red-500/30 text-red-300'
+                      : sessions.length >= limits.maxSessions - 1
+                        ? 'bg-amber-500/10 border-amber-500/30 text-amber-300'
+                        : 'bg-slate-800/50 border-slate-700 text-slate-400'
+                  }`}
+                >
+                  {sessions.length}/{limits.maxSessions} sessions
+                </span>
+              )}
+            </div>
             <button
               onClick={() => closeModal('history')}
               className="text-slate-400 hover:text-white focus:outline-none focus:text-white"

@@ -45,22 +45,26 @@ export const UpgradePrompt: React.FC<UpgradePromptProps> = ({
           <p className="text-slate-300 text-sm">{getMessage()}</p>
         </div>
 
-        <div className="space-y-2 text-sm text-slate-300">
+        <div className="space-y-2.5 text-sm text-slate-300">
           <div className="flex items-center justify-center gap-2">
-            <span className="text-green-400">✓</span>
-            <span>Unlimited voice sessions</span>
+            <span className="text-green-400 text-base">✓</span>
+            <span className="font-medium">Unlimited voice sessions</span>
           </div>
           <div className="flex items-center justify-center gap-2">
-            <span className="text-green-400">✓</span>
-            <span>Extended session duration (up to 1 hour)</span>
+            <span className="text-green-400 text-base">✓</span>
+            <span className="font-medium">Extended sessions (up to 1 hour)</span>
           </div>
           <div className="flex items-center justify-center gap-2">
-            <span className="text-green-400">✓</span>
-            <span>AI-powered insights and analysis</span>
+            <span className="text-green-400 text-base">✓</span>
+            <span className="font-medium">Unlimited AI insights & analysis</span>
           </div>
           <div className="flex items-center justify-center gap-2">
-            <span className="text-green-400">✓</span>
-            <span>Priority support</span>
+            <span className="text-green-400 text-base">✓</span>
+            <span className="font-medium">Audio playback & full history</span>
+          </div>
+          <div className="flex items-center justify-center gap-2">
+            <span className="text-green-400 text-base">✓</span>
+            <span className="font-medium">Priority support</span>
           </div>
         </div>
 

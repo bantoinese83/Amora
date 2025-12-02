@@ -92,14 +92,27 @@ export const Header: React.FC<HeaderProps> = ({
           aria-label="Manage Profile"
         >
           <div className="hidden sm:flex flex-col items-end">
-            <span className="text-xs font-medium text-slate-200 group-hover:text-white transition-colors">
-              {user.name}
-            </span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs font-medium text-slate-200 group-hover:text-white transition-colors">
+                {user.name}
+              </span>
+              {user.isPremium && (
+                <span className="px-1.5 py-0.5 bg-gradient-to-r from-amora-500 to-pink-500 text-white text-[10px] font-bold rounded-full leading-none">
+                  PRO
+                </span>
+              )}
+            </div>
             <span className="text-[10px] text-slate-500 font-mono group-hover:text-slate-400 transition-colors">
               {user.email}
             </span>
           </div>
-          <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-slate-700 to-slate-600 border border-slate-500 flex items-center justify-center text-xs font-bold text-white shadow-sm group-hover:border-amora-400 transition-colors">
+          <div
+            className={`w-8 h-8 rounded-full border flex items-center justify-center text-xs font-bold text-white shadow-sm transition-colors ${
+              user.isPremium
+                ? 'bg-gradient-to-tr from-amora-500 to-pink-500 border-amora-400 group-hover:border-amora-300'
+                : 'bg-gradient-to-tr from-slate-700 to-slate-600 border-slate-500 group-hover:border-amora-400'
+            }`}
+          >
             {user.name.charAt(0)}
           </div>
         </button>
