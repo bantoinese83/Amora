@@ -10,7 +10,8 @@ import { getSubscriptionLimits } from '../services/subscriptionService';
 import { EmptyState } from './common/EmptyState';
 
 export const SessionHistory: React.FC = () => {
-  const { sessions, modals, closeModal, openModal, authState, isLoadingSessions, deleteSession } = useApp();
+  const { sessions, modals, closeModal, openModal, authState, isLoadingSessions, deleteSession } =
+    useApp();
   const [confirmingDelete, setConfirmingDelete] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
   const isPremium = authState.user?.isPremium || false;
@@ -49,7 +50,7 @@ export const SessionHistory: React.FC = () => {
     try {
       await deleteSession(session.id);
       setConfirmingDelete(null);
-    } catch (error) {
+    } catch {
       // Error is handled by deleteSession and shown via toast
     } finally {
       setDeleting(null);

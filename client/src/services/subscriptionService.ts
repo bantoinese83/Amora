@@ -73,7 +73,8 @@ export async function hasFeatureAccess(userId: string): Promise<boolean> {
  */
 export async function getSubscriptionDetails(userId: string): Promise<SubscriptionStatus | null> {
   try {
-    const API_URL = import.meta.env.VITE_API_URL || 'https://amora-server-production.up.railway.app';
+    const API_URL =
+      import.meta.env.VITE_API_URL || 'https://amora-server-production.up.railway.app';
     const response = await fetch(`${API_URL}/api/subscription/status/${userId}`, {
       method: 'GET',
       headers: {

@@ -43,7 +43,9 @@ export const UpgradePrompt: React.FC<UpgradePromptProps> = ({
       <div className="text-center space-y-4">
         <div>
           <h3 className="text-lg font-bold text-slate-900 mb-1">Unlock Full Access</h3>
-          <p className="text-xs text-amora-600 mb-2 font-medium">Get the complete therapist, coach & journal experience</p>
+          <p className="text-xs text-amora-600 mb-2 font-medium">
+            Get the complete therapist, coach & journal experience
+          </p>
           <p className="text-slate-700 text-sm">{getMessage()}</p>
         </div>
 

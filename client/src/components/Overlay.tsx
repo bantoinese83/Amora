@@ -3,6 +3,7 @@ import { a, useSpring } from '@react-spring/web';
 import { MessageLog } from '../types';
 
 interface OverlayProps {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   fill: any;
   transcripts?: MessageLog[];
 }
@@ -21,7 +22,7 @@ const splitIntoLines = (text: string, maxChars: number = 40): string[] => {
   const lines: string[] = [];
   let currentLine = '';
 
-  words.forEach((word) => {
+  words.forEach(word => {
     const testLine = currentLine ? `${currentLine} ${word}` : word;
     if (testLine.length <= maxChars) {
       currentLine = testLine;
@@ -71,9 +72,10 @@ export const Overlay: React.FC<OverlayProps> = ({ fill, transcripts = [] }) => {
 
     // Calculate base height with max font sizes
     let baseHeight = 100; // Top padding
-    transcripts.forEach((msg) => {
+    transcripts.forEach(msg => {
       const lines = splitIntoLines(msg.text);
-      baseHeight += MAX_FONT_SIZE_SPEAKER + lines.length * (MAX_FONT_SIZE_TEXT * LINE_HEIGHT_MULTIPLIER) + 40;
+      baseHeight +=
+        MAX_FONT_SIZE_SPEAKER + lines.length * (MAX_FONT_SIZE_TEXT * LINE_HEIGHT_MULTIPLIER) + 40;
     });
 
     // If content fits without scroll, use max font sizes
@@ -89,30 +91,25 @@ export const Overlay: React.FC<OverlayProps> = ({ fill, transcripts = [] }) => {
 
     // Calculate scale factor to fit content
     const scaleFactor = MAX_HEIGHT_NO_SCROLL / baseHeight;
-    
+
     // Calculate scaled font sizes (but don't go below minimum)
-    const scaledSpeakerSize = Math.max(
-      MAX_FONT_SIZE_SPEAKER * scaleFactor,
-      MIN_FONT_SIZE_SPEAKER
-    );
-    const scaledTextSize = Math.max(
-      MAX_FONT_SIZE_TEXT * scaleFactor,
-      MIN_FONT_SIZE_TEXT
-    );
+    const scaledSpeakerSize = Math.max(MAX_FONT_SIZE_SPEAKER * scaleFactor, MIN_FONT_SIZE_SPEAKER);
+    const scaledTextSize = Math.max(MAX_FONT_SIZE_TEXT * scaleFactor, MIN_FONT_SIZE_TEXT);
 
     // Recalculate height with scaled fonts
     let scaledHeight = 100;
-    transcripts.forEach((msg) => {
+    transcripts.forEach(msg => {
       const lines = splitIntoLines(msg.text);
-      scaledHeight += scaledSpeakerSize + lines.length * (scaledTextSize * LINE_HEIGHT_MULTIPLIER) + 40;
+      scaledHeight +=
+        scaledSpeakerSize + lines.length * (scaledTextSize * LINE_HEIGHT_MULTIPLIER) + 40;
     });
 
     // If still too tall even with minimum fonts, enable scroll
     const finalNeedsScroll = scaledHeight > MAX_HEIGHT_NO_SCROLL;
-    
+
     // Use the actual calculated height, ensuring we have enough space
     const finalHeight = finalNeedsScroll ? scaledHeight : scaledHeight;
-    
+
     return {
       fontSizeSpeaker: finalNeedsScroll ? MIN_FONT_SIZE_SPEAKER : scaledSpeakerSize,
       fontSizeText: finalNeedsScroll ? MIN_FONT_SIZE_TEXT : scaledTextSize,
@@ -133,7 +130,12 @@ export const Overlay: React.FC<OverlayProps> = ({ fill, transcripts = [] }) => {
           pointerEvents: hasTranscripts ? 'none' : 'auto',
         }}
       >
-        <a.svg viewBox="0 0 650 720" fill={fill} xmlns="http://www.w3.org/2000/svg" style={{ overflow: 'visible' }}>
+        <a.svg
+          viewBox="0 0 650 720"
+          fill={fill}
+          xmlns="http://www.w3.org/2000/svg"
+          style={{ overflow: 'visible' }}
+        >
           <text
             style={{ whiteSpace: 'pre' }}
             fontFamily="Inter"
@@ -217,56 +219,59 @@ export const Overlay: React.FC<OverlayProps> = ({ fill, transcripts = [] }) => {
             preserveAspectRatio="xMinYMin none"
             style={{ height: 'auto', minHeight: '100%', overflow: 'visible' }}
           >
-          {transcripts.map((msg, msgIndex) => {
-            const isUser = msg.role === 'user';
-            const speaker = isUser ? 'You' : 'Amora';
-            const lines = splitIntoLines(msg.text);
-            
-            // Calculate Y position for this message
-            let startY = 100;
-            for (let i = 0; i < msgIndex; i++) {
-              const prevLines = splitIntoLines(transcripts[i].text);
-              startY += fontSizeSpeaker + prevLines.length * lineHeight + 40; // Previous message height + spacing
-            }
+            {transcripts.map((msg, msgIndex) => {
+              const isUser = msg.role === 'user';
+              const speaker = isUser ? 'You' : 'Amora';
+              const lines = splitIntoLines(msg.text);
 
-            return (
-              <g key={msg.id} className="animate-in fade-in">
-                {/* Speaker name with purple color */}
-                <text
-                  fill="#8b5cf6"
-                  style={{ whiteSpace: 'pre' }}
-                  fontFamily="Inter"
-                  fontSize={fontSizeSpeaker}
-                  fontWeight="bold"
-                  letterSpacing="0em"
-                >
-                  <tspan x={40} y={startY}>
-                    {speaker} —
-                  </tspan>
-                </text>
+              // Calculate Y position for this message
+              let startY = 100;
+              for (let i = 0; i < msgIndex; i++) {
+                const prevLines = splitIntoLines(transcripts[i].text);
+                startY += fontSizeSpeaker + prevLines.length * lineHeight + 40; // Previous message height + spacing
+              }
 
-                {/* Message text */}
-                <text
-                  style={{ whiteSpace: 'pre' }}
-                  fontFamily="Inter"
-                  fontSize={fontSizeText}
-                  fontWeight="bold"
-                  letterSpacing="0em"
-                  fill="currentColor"
-                >
-                  {lines.map((line, lineIndex) => (
-                    <tspan key={lineIndex} x={40} y={startY + fontSizeSpeaker + lineIndex * lineHeight}>
-                      {line}
+              return (
+                <g key={msg.id} className="animate-in fade-in">
+                  {/* Speaker name with purple color */}
+                  <text
+                    fill="#8b5cf6"
+                    style={{ whiteSpace: 'pre' }}
+                    fontFamily="Inter"
+                    fontSize={fontSizeSpeaker}
+                    fontWeight="bold"
+                    letterSpacing="0em"
+                  >
+                    <tspan x={40} y={startY}>
+                      {speaker} —
                     </tspan>
-                  ))}
-                </text>
-              </g>
-            );
-          })}
+                  </text>
+
+                  {/* Message text */}
+                  <text
+                    style={{ whiteSpace: 'pre' }}
+                    fontFamily="Inter"
+                    fontSize={fontSizeText}
+                    fontWeight="bold"
+                    letterSpacing="0em"
+                    fill="currentColor"
+                  >
+                    {lines.map((line, lineIndex) => (
+                      <tspan
+                        key={lineIndex}
+                        x={40}
+                        y={startY + fontSizeSpeaker + lineIndex * lineHeight}
+                      >
+                        {line}
+                      </tspan>
+                    ))}
+                  </text>
+                </g>
+              );
+            })}
           </a.svg>
         </a.div>
       )}
     </div>
   );
 };
-

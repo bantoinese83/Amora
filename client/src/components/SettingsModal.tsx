@@ -14,7 +14,9 @@ export const SettingsModal: React.FC = () => {
         <h2 className="text-2xl font-bold text-slate-900 mb-2">Voice Settings</h2>
         <p className="text-slate-600 mb-3">Choose the voice that feels most comfortable for you.</p>
         <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-full w-fit">
-          <span className="text-[10px] text-slate-600 font-medium">Therapist • Coach • Journal</span>
+          <span className="text-[10px] text-slate-600 font-medium">
+            Therapist • Coach • Journal
+          </span>
         </div>
       </div>
 
@@ -34,7 +36,9 @@ export const SettingsModal: React.FC = () => {
               <div className="flex justify-between items-center">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
-                    <span className={`font-bold ${isSelected ? 'text-amora-900' : 'text-slate-900'}`}>
+                    <span
+                      className={`font-bold ${isSelected ? 'text-amora-900' : 'text-slate-900'}`}
+                    >
                       {voice.name}
                     </span>
                     <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">

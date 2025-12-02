@@ -476,7 +476,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
           error instanceof Error ? error : undefined
         );
         const errorMessage =
-          error instanceof Error ? error.message : "We couldn't delete this conversation. Please try again.";
+          error instanceof Error
+            ? error.message
+            : "We couldn't delete this conversation. Please try again.";
         showToast(errorMessage, 'error');
         throw error;
       }

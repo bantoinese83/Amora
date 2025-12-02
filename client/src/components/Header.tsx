@@ -50,9 +50,7 @@ export const Header: React.FC<HeaderProps> = ({
             A
           </div>
           <div className="hidden sm:block">
-            <span className="font-semibold text-xl tracking-tight text-slate-900 block">
-              Amora
-            </span>
+            <span className="font-semibold text-xl tracking-tight text-slate-900 block">Amora</span>
             <span className="text-[10px] text-slate-500 font-medium tracking-wide uppercase">
               Therapist • Coach • Journal
             </span>

@@ -1,3 +1,4 @@
+import React from 'react';
 import { motion } from 'motion/react';
 import { cn } from '../../utils/cn';
 
@@ -104,7 +105,7 @@ const DetailedActivityInfo = ({ activities }: DetailedActivityInfoProps) => {
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.5, delay: 0.3 }}
     >
-      {activities.map((activity) => (
+      {activities.map(activity => (
         <motion.div key={activity.label} className="flex flex-col">
           <span className="text-sm font-medium text-slate-600">{activity.label}</span>
           <span className="text-2xl font-semibold" style={{ color: activity.color }}>
@@ -195,4 +196,3 @@ export const ActivityRings: React.FC<ActivityRingsProps> = ({
     </div>
   );
 };
-

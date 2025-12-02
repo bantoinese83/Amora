@@ -12,7 +12,11 @@ import { useSpring } from '@react-spring/core';
 import { a } from '@react-spring/three';
 import { AudioData } from '../hooks/useVoiceClient';
 import { MessageLog } from '../types';
-import { calculateBassEnergy, calculateMidEnergy, calculateHighEnergy } from '../utils/audioAnalysis';
+import {
+  calculateBassEnergy,
+  calculateMidEnergy,
+  calculateHighEnergy,
+} from '../utils/audioAnalysis';
 
 interface AmoraVisualizerProps {
   audioRef: React.MutableRefObject<AudioData>;
@@ -41,7 +45,7 @@ export const AmoraVisualizer: React.FC<AmoraVisualizerProps> = ({
   const isAmoraSpeaking = currentSpeaker === 'assistant';
 
   // Make the bubble float and follow the mouse
-  useFrame((state) => {
+  useFrame(state => {
     if (light.current) {
       light.current.position.x = state.mouse.x * 20;
       light.current.position.y = state.mouse.y * 20;
@@ -97,7 +101,10 @@ export const AmoraVisualizer: React.FC<AmoraVisualizerProps> = ({
             // Toggle mode between dark and bright
             setMode(!mode);
             if (setBg) {
-              setBg({ background: !mode ? '#202020' : '#f0f0f0', fill: !mode ? '#f0f0f0' : '#202020' });
+              setBg({
+                background: !mode ? '#202020' : '#f0f0f0',
+                fill: !mode ? '#f0f0f0' : '#202020',
+              });
             }
           }}
         />
@@ -111,7 +118,12 @@ export const AmoraVisualizer: React.FC<AmoraVisualizerProps> = ({
           blur={2.5}
           far={1.6}
         />
-        <OrbitControls enablePan={false} enableZoom={false} maxPolarAngle={Math.PI / 2} minPolarAngle={Math.PI / 2} />
+        <OrbitControls
+          enablePan={false}
+          enableZoom={false}
+          maxPolarAngle={Math.PI / 2}
+          minPolarAngle={Math.PI / 2}
+        />
       </Suspense>
     </>
   );
@@ -120,10 +132,15 @@ export const AmoraVisualizer: React.FC<AmoraVisualizerProps> = ({
 interface AmoraOrbProps {
   audioRef: React.MutableRefObject<AudioData>;
   isActive: boolean;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   wobble: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   color: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   env: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   coat: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   distort: any;
   isAmoraSpeaking: boolean;
   onPointerOver: () => void;
@@ -147,27 +164,28 @@ function AmoraOrb({
   onPointerUp,
 }: AmoraOrbProps) {
   const sphere = useRef<THREE.Mesh>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const materialRef = useRef<any>(null);
-  
+
   // Smooth audio values - only react when Amora is speaking
   const smoothVolume = useRef(0);
   const smoothBass = useRef(0);
   const smoothMid = useRef(0);
   const smoothHigh = useRef(0);
-  
+
   // Wave phase tracking for fluid ripple effects
   const wavePhase = useRef(0);
   const bassWavePhase = useRef(0);
   const midWavePhase = useRef(0);
   const highWavePhase = useRef(0);
-  
+
   // Subtle movement and rotation
   const baseRotation = useRef(0);
   const floatOffset = useRef(0);
 
-  useFrame((state) => {
+  useFrame(state => {
     const time = state.clock.elapsedTime;
-    
+
     // Only process audio when Amora is speaking
     if (isAmoraSpeaking && isActive) {
       const { volume, data } = audioRef.current;
@@ -187,7 +205,7 @@ function AmoraOrb({
       const bassSpeed = 0.5 + smoothBass.current * 0.3; // Slower for bass
       const midSpeed = 1.0 + smoothMid.current * 0.5; // Medium speed
       const highSpeed = 1.5 + smoothHigh.current * 0.7; // Faster for high frequencies
-      
+
       bassWavePhase.current += bassSpeed * 0.02;
       midWavePhase.current += midSpeed * 0.02;
       highWavePhase.current += highSpeed * 0.02;
@@ -198,7 +216,7 @@ function AmoraOrb({
       smoothBass.current *= 0.95;
       smoothMid.current *= 0.95;
       smoothHigh.current *= 0.95;
-      
+
       // Continue gentle wave motion
       wavePhase.current += 0.01;
       bassWavePhase.current += 0.01;
@@ -236,13 +254,13 @@ function AmoraOrb({
         const midWave = Math.sin(midWavePhase.current * 1.3) * smoothMid.current * 0.12;
         // High creates fast, subtle ripples
         const highWave = Math.sin(highWavePhase.current * 2.0) * smoothHigh.current * 0.08;
-        
+
         // Combine waves for fluid, layered ripple effect
         const waveDistort = bassWave + midWave + highWave;
-        
+
         // Base distortion from volume (subtle)
         const volumeDistort = smoothVolume.current * 0.15;
-        
+
         // Total distortion - calculated and smooth
         const finalDistort = Math.max(0, Math.min(0.4, volumeDistort + waveDistort));
 

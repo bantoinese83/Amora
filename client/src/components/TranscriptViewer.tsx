@@ -13,7 +13,7 @@ const STARTERS = [
   "I'm feeling a bit overwhelmed.",
   'I had a conflict with a friend.',
   'I want to work on my goals.',
-  "I need to process what happened today.",
+  'I need to process what happened today.',
 ];
 
 export const TranscriptViewer: React.FC<TranscriptViewerProps> = ({ transcripts, status }) => {

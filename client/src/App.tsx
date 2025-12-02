@@ -34,10 +34,7 @@ export default function App() {
   } = useSessionWorkflow();
 
   // Spring for background and text color
-  const [{ background, fill }, setBg] = useSpring(
-    { background: '#f0f0f0', fill: '#202020' },
-    []
-  );
+  const [{ background, fill }, setBg] = useSpring({ background: '#f0f0f0', fill: '#202020' }, []);
 
   const isConnected = status === ConnectionStatus.CONNECTED;
 

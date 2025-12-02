@@ -692,7 +692,9 @@ export const AuthPaymentModal: React.FC = () => {
               {subscriptionDetails.paymentMethod && (
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-slate-600">Payment Method</span>
-                  <span className="text-slate-900 font-mono">{subscriptionDetails.paymentMethod}</span>
+                  <span className="text-slate-900 font-mono">
+                    {subscriptionDetails.paymentMethod}
+                  </span>
                 </div>
               )}
               {subscriptionDetails.nextBilling && (

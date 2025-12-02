@@ -12,7 +12,13 @@ interface SceneProps {
   transcripts?: MessageLog[];
 }
 
-export const Scene: React.FC<SceneProps> = ({ audioRef, isActive, onClick, setBg, transcripts }) => {
+export const Scene: React.FC<SceneProps> = ({
+  audioRef,
+  isActive,
+  onClick,
+  setBg,
+  transcripts,
+}) => {
   return (
     <Canvas className="canvas" dpr={[1, 2]}>
       <AmoraVisualizer
@@ -25,4 +31,3 @@ export const Scene: React.FC<SceneProps> = ({ audioRef, isActive, onClick, setBg
     </Canvas>
   );
 };
-

@@ -73,9 +73,7 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, classNa
             <XIcon />
           </button>
         )}
-        <div className="p-8 overflow-y-auto flex-1 min-h-0 pr-12">
-          {children}
-        </div>
+        <div className="p-8 overflow-y-auto flex-1 min-h-0 pr-12">{children}</div>
       </div>
     </div>
   );
