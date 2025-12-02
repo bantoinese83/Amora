@@ -20,7 +20,11 @@ export const SessionHistory: React.FC = () => {
   };
 
   const handleSessionClick = (session: Session) => {
-    openModal('summary', session);
+    closeModal('history');
+    // Small delay to ensure history modal closes before summary opens
+    setTimeout(() => {
+      openModal('summary', session);
+    }, 100);
   };
 
   if (!modals.history) return null;

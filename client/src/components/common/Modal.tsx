@@ -50,7 +50,7 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, classNa
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-white/90 p-4 animate-in fade-in"
+      className="fixed inset-0 z-[70] flex items-center justify-center bg-white/90 p-4 animate-in fade-in"
       onClick={e => {
         if (e.target === e.currentTarget && onClose) {
           onClose();
