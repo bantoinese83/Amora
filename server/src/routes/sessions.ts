@@ -24,7 +24,12 @@ router.get('/user/:userId', async (req: Request, res: Response) => {
     const sessions = await sessionRepository.getAll(userId);
     res.json({ sessions });
   } catch (error) {
-    logger.error('Error getting sessions', { userId }, error instanceof Error ? error : undefined);
+    const userIdFromParams = req.params.userId;
+    logger.error(
+      'Error getting sessions',
+      { userId: userIdFromParams },
+      error instanceof Error ? error : undefined
+    );
     res.status(500).json({ error: "We couldn't load your conversations. Please try again." });
   }
 });
@@ -48,7 +53,13 @@ router.get('/:sessionId/user/:userId', async (req: Request, res: Response) => {
 
     res.json({ session });
   } catch (error) {
-    logger.error('Error getting session', { userId, sessionId }, error instanceof Error ? error : undefined);
+    const userIdFromParams = req.params.userId;
+    const sessionIdFromParams = req.params.sessionId;
+    logger.error(
+      'Error getting session',
+      { userId: userIdFromParams, sessionId: sessionIdFromParams },
+      error instanceof Error ? error : undefined
+    );
     res.status(500).json({ error: "We couldn't load this conversation. Please try again." });
   }
 });
@@ -109,10 +120,20 @@ router.post('/user/:userId', async (req: Request, res: Response) => {
     };
 
     const savedSession = await sessionRepository.save(userId, session);
-    logger.info('Session created successfully', { userId, sessionId: savedSession?.id, durationSeconds });
+    logger.info('Session created successfully', {
+      userId,
+      sessionId: savedSession?.id,
+      durationSeconds,
+    });
     res.json({ session: savedSession });
   } catch (error) {
-    logger.error('Error creating session', { userId, durationSeconds }, error instanceof Error ? error : undefined);
+    const userIdFromParams = req.params.userId;
+    const durationSecondsFromBody = (req.body as { durationSeconds?: number })?.durationSeconds;
+    logger.error(
+      'Error creating session',
+      { userId: userIdFromParams, durationSeconds: durationSecondsFromBody },
+      error instanceof Error ? error : undefined
+    );
     res.status(500).json({ error: "We couldn't save your conversation. Please try again." });
   }
 });
@@ -138,7 +159,13 @@ router.put('/:sessionId/user/:userId', async (req: Request, res: Response) => {
     logger.info('Session updated successfully', { userId, sessionId });
     res.json({ session: updatedSession });
   } catch (error) {
-    logger.error('Error updating session', { userId, sessionId }, error instanceof Error ? error : undefined);
+    const userIdFromParams = req.params.userId;
+    const sessionIdFromParams = req.params.sessionId;
+    logger.error(
+      'Error updating session',
+      { userId: userIdFromParams, sessionId: sessionIdFromParams },
+      error instanceof Error ? error : undefined
+    );
     res.status(500).json({ error: "We couldn't update your conversation. Please try again." });
   }
 });
@@ -163,10 +190,15 @@ router.delete('/:sessionId/user/:userId', async (req: Request, res: Response) =>
     logger.info('Session deleted successfully', { userId, sessionId });
     res.json({ success: true });
   } catch (error) {
-    logger.error('Error deleting session', { userId, sessionId }, error instanceof Error ? error : undefined);
+    const userIdFromParams = req.params.userId;
+    const sessionIdFromParams = req.params.sessionId;
+    logger.error(
+      'Error deleting session',
+      { userId: userIdFromParams, sessionId: sessionIdFromParams },
+      error instanceof Error ? error : undefined
+    );
     res.status(500).json({ error: "We couldn't delete this conversation. Please try again." });
   }
 });
 
 export { router as sessionRoutes };
-

@@ -14,7 +14,11 @@ export async function updatePremiumStatus(userId: string, isPremium: boolean): P
     await userRepository.updatePremiumStatus(userId, isPremium);
     logger.info('Premium status updated', { userId, isPremium });
   } catch (error) {
-    logger.error('Failed to update premium status', { userId, isPremium }, error instanceof Error ? error : undefined);
+    logger.error(
+      'Failed to update premium status',
+      { userId, isPremium },
+      error instanceof Error ? error : undefined
+    );
     throw error;
   }
 }

@@ -9,63 +9,61 @@ import { userRepository } from '../repositories/userRepository';
  * For now, we check the database premium status
  */
 export async function checkSubscriptionStatus(userId) {
-    try {
-        const user = await userRepository.getUserById(userId);
-        if (!user) {
-            return { isActive: false };
-        }
-        return {
-            isActive: user.is_premium || false,
-            // In a real implementation, you'd fetch this from Stripe
-            // For now, we rely on the database premium status
-        };
+  try {
+    const user = await userRepository.getUserById(userId);
+    if (!user) {
+      return { isActive: false };
     }
-    catch (error) {
-        console.error('Failed to check subscription status:', error);
-        return { isActive: false };
-    }
+    return {
+      isActive: user.is_premium || false,
+      // In a real implementation, you'd fetch this from Stripe
+      // For now, we rely on the database premium status
+    };
+  } catch (error) {
+    console.error('Failed to check subscription status:', error);
+    return { isActive: false };
+  }
 }
 /**
  * Update user premium status based on subscription
  */
 export async function updatePremiumStatus(userId, isPremium) {
-    try {
-        await userRepository.updatePremiumStatus(userId, isPremium);
-    }
-    catch (error) {
-        console.error('Failed to update premium status:', error);
-        throw error;
-    }
+  try {
+    await userRepository.updatePremiumStatus(userId, isPremium);
+  } catch (error) {
+    console.error('Failed to update premium status:', error);
+    throw error;
+  }
 }
 /**
  * Feature gating - check if user has access to a feature
  */
 export async function hasFeatureAccess(userId) {
-    const status = await checkSubscriptionStatus(userId);
-    return status.isActive;
+  const status = await checkSubscriptionStatus(userId);
+  return status.isActive;
 }
 /**
  * Get subscription limits based on plan
  */
 export function getSubscriptionLimits(isPremium) {
-    if (isPremium) {
-        return {
-            maxSessions: Infinity,
-            maxSessionDuration: 3600, // 1 hour
-            features: [
-                'unlimited_sessions',
-                'premium_insights',
-                'priority_support',
-                'audio_playback',
-                'session_history',
-            ],
-        };
-    }
-    // Free tier limits
+  if (isPremium) {
     return {
-        maxSessions: 3, // Limited sessions for free users
-        maxSessionDuration: 600, // 10 minutes
-        features: ['basic_sessions'],
+      maxSessions: Infinity,
+      maxSessionDuration: 3600, // 1 hour
+      features: [
+        'unlimited_sessions',
+        'premium_insights',
+        'priority_support',
+        'audio_playback',
+        'session_history',
+      ],
     };
+  }
+  // Free tier limits
+  return {
+    maxSessions: 3, // Limited sessions for free users
+    maxSessionDuration: 600, // 10 minutes
+    features: ['basic_sessions'],
+  };
 }
 //# sourceMappingURL=subscriptionService.js.map

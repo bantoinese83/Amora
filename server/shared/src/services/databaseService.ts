@@ -38,10 +38,10 @@ function initDatabase(): ReturnType<typeof neon> {
   isInitializing = true;
 
   try {
-    const connectionString = 
-      (typeof process !== 'undefined' && process.env?.NEON_DATABASE_URL) || 
+    const connectionString =
+      (typeof process !== 'undefined' && process.env?.NEON_DATABASE_URL) ||
       (typeof process !== 'undefined' && process.env?.VITE_NEON_DATABASE_URL) ||
-      (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_NEON_DATABASE_URL) || 
+      (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_NEON_DATABASE_URL) ||
       '';
     if (
       !connectionString ||

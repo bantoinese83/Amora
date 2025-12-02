@@ -14,7 +14,9 @@ const router = Router();
 function getStripe(): Stripe {
   const apiKey = process.env.STRIPE_SECRET_KEY;
   if (!apiKey) {
-    throw new Error('Stripe API key is not configured. Please set STRIPE_SECRET_KEY in your environment variables.');
+    throw new Error(
+      'Stripe API key is not configured. Please set STRIPE_SECRET_KEY in your environment variables.'
+    );
   }
   return new Stripe(apiKey, {
     apiVersion: '2025-02-24.acacia',
@@ -39,11 +41,10 @@ router.post('/create-checkout-session', async (req: Request, res: Response) => {
     let customerId: string | undefined;
     if (userId && customerEmail) {
       try {
-        const { userRepository } = await import(
-          '../../../shared/dist/src/repositories/userRepository.js'
-        );
+        const { userRepository } =
+          await import('../../../shared/dist/src/repositories/userRepository.js');
         const user = await userRepository.getUserById(userId);
-        
+
         if (user?.stripe_customer_id) {
           // Use existing customer
           customerId = user.stripe_customer_id;
@@ -53,7 +54,7 @@ router.post('/create-checkout-session', async (req: Request, res: Response) => {
             email: customerEmail,
             limit: 1,
           });
-          
+
           if (customers.data.length > 0) {
             customerId = customers.data[0].id;
             // Update user with customer ID
@@ -72,7 +73,11 @@ router.post('/create-checkout-session', async (req: Request, res: Response) => {
           }
         }
       } catch (error) {
-        logger.warn('Failed to link Stripe customer', { userId, customerEmail }, error instanceof Error ? error : undefined);
+        logger.warn(
+          'Failed to link Stripe customer',
+          { userId, customerEmail },
+          error instanceof Error ? error : undefined
+        );
         // Continue without customer ID - Stripe will create one
       }
     }
@@ -102,12 +107,24 @@ router.post('/create-checkout-session', async (req: Request, res: Response) => {
       sessionId: session.id,
       url: session.url,
     });
-    logger.info('Checkout session created successfully', { sessionId: session.id, userId: userId, priceId: priceId });
+    logger.info('Checkout session created successfully', {
+      sessionId: session.id,
+      userId: userId,
+      priceId: priceId,
+    });
   } catch (error) {
-    const { userId: reqUserId, priceId: reqPriceId } = req.body as StripeCheckoutSessionParams & { userId?: string };
-    logger.error('Error creating checkout session', { userId: reqUserId, priceId: reqPriceId }, error instanceof Error ? error : undefined);
+    const { userId: reqUserId, priceId: reqPriceId } = req.body as StripeCheckoutSessionParams & {
+      userId?: string;
+    };
+    logger.error(
+      'Error creating checkout session',
+      { userId: reqUserId, priceId: reqPriceId },
+      error instanceof Error ? error : undefined
+    );
     if (error instanceof Error && error.message.includes('Stripe API key')) {
-      res.status(500).json({ error: "Payment processing is not configured. Please contact support." });
+      res
+        .status(500)
+        .json({ error: 'Payment processing is not configured. Please contact support.' });
     } else {
       res.status(500).json({ error: "We couldn't start the payment process. Please try again." });
     }

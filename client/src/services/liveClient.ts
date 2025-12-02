@@ -119,14 +119,36 @@ export class LiveClient {
       this.startVisualizerLoop();
 
       // 2. Get Microphone Stream with enhanced audio constraints
-      this.stream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          channelCount: 1,
-          echoCancellation: true,
-          autoGainControl: true,
-          noiseSuppression: true,
-        },
-      });
+      try {
+        this.stream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            channelCount: 1,
+            echoCancellation: true,
+            autoGainControl: true,
+            noiseSuppression: true,
+          },
+        });
+      } catch (error) {
+        // Handle microphone permission errors
+        if (error instanceof Error) {
+          if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+            logger.error('Microphone permission denied', {}, error);
+            throw new Error(
+              'Microphone access is required. Please allow microphone access in your browser settings and try again.'
+            );
+          } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
+            logger.error('No microphone found', {}, error);
+            throw new Error('No microphone found. Please connect a microphone and try again.');
+          } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
+            logger.error('Microphone is already in use', {}, error);
+            throw new Error(
+              'Microphone is already in use by another application. Please close other applications and try again.'
+            );
+          }
+        }
+        // Re-throw other errors
+        throw error;
+      }
 
       // 3. Configure session with personalized system instruction if user name is provided
       let systemInstruction = config.systemInstruction;
@@ -420,11 +442,12 @@ When the session first starts, immediately greet the user by name (${config.user
    * This triggers Amora to greet the user by name when the connection is established
    * We send a silent audio trigger to prompt the AI to speak the greeting
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private async sendGreeting(sessionPromise: Promise<any>, userName: string): Promise<void> {
     try {
       // Wait a brief moment for the connection to fully stabilize
       await new Promise(resolve => setTimeout(resolve, 800));
-      
+
       const session = await sessionPromise;
       if (!session || typeof session.sendRealtimeInput !== 'function') {
         logger.warn('Cannot send greeting: session not available', {});
@@ -436,7 +459,7 @@ When the session first starts, immediately greet the user by name (${config.user
       // Create a very short silent audio buffer to trigger the AI response
       const silentAudio = new Float32Array(160); // ~10ms of silence at 16kHz
       const pcmBlob = createPcmBlob(silentAudio);
-      
+
       // Send the trigger - the AI will respond with the greeting from system instruction
       session.sendRealtimeInput({
         media: pcmBlob,

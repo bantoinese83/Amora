@@ -11,7 +11,10 @@ export declare function executeQuery<T = unknown>(query: string, params?: unknow
 /**
  * Execute a single row query
  */
-export declare function executeQueryOne<T = unknown>(query: string, params?: unknown[]): Promise<T | null>;
+export declare function executeQueryOne<T = unknown>(
+  query: string,
+  params?: unknown[]
+): Promise<T | null>;
 /**
  * Validate UUID parameter
  */

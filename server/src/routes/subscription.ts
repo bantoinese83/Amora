@@ -14,7 +14,9 @@ const router = Router();
 function getStripe(): Stripe {
   const apiKey = process.env.STRIPE_SECRET_KEY;
   if (!apiKey) {
-    throw new Error('Stripe API key is not configured. Please set STRIPE_SECRET_KEY in your environment variables.');
+    throw new Error(
+      'Stripe API key is not configured. Please set STRIPE_SECRET_KEY in your environment variables.'
+    );
   }
   return new Stripe(apiKey, {
     apiVersion: '2025-02-24.acacia',
@@ -42,12 +44,14 @@ router.get('/status/:userId', async (req: Request, res: Response) => {
     if (user.stripe_customer_id) {
       try {
         const stripe = getStripe();
-        const customer = (await stripe.customers.retrieve(user.stripe_customer_id)) as Stripe.Customer;
-        
+        const customer = (await stripe.customers.retrieve(
+          user.stripe_customer_id
+        )) as Stripe.Customer;
+
         if (user.stripe_subscription_id) {
           const subscription = await stripe.subscriptions.retrieve(user.stripe_subscription_id);
           const isActive = subscription.status === 'active' || subscription.status === 'trialing';
-          
+
           // Sync status if different
           if (isActive !== user.is_premium) {
             await userRepository.updateStripeInfo(
@@ -80,7 +84,7 @@ router.get('/status/:userId', async (req: Request, res: Response) => {
           if (subscriptions.data.length > 0) {
             const subscription = subscriptions.data[0];
             const isActive = subscription.status === 'active' || subscription.status === 'trialing';
-            
+
             // Update user with subscription ID
             await userRepository.updateStripeInfo(
               userId,
@@ -102,7 +106,12 @@ router.get('/status/:userId', async (req: Request, res: Response) => {
           }
         }
       } catch (error) {
-        logger.error('Error fetching Stripe subscription', { subscriptionId }, error instanceof Error ? error : undefined);
+        const subscriptionIdFromUser = user.stripe_subscription_id;
+        logger.error(
+          'Error fetching Stripe subscription',
+          { subscriptionId: subscriptionIdFromUser },
+          error instanceof Error ? error : undefined
+        );
         // Fall back to database status if Stripe is not configured
         if (error instanceof Error && error.message.includes('Stripe API key')) {
           // Continue with database status only
@@ -117,8 +126,15 @@ router.get('/status/:userId', async (req: Request, res: Response) => {
       customerId: user.stripe_customer_id || undefined,
     });
   } catch (error) {
-    logger.error('Error getting subscription status', { userId }, error instanceof Error ? error : undefined);
-    res.status(500).json({ error: "We couldn't check your subscription status. Please try again." });
+    const userIdFromParams = req.params.userId;
+    logger.error(
+      'Error getting subscription status',
+      { userId: userIdFromParams },
+      error instanceof Error ? error : undefined
+    );
+    res
+      .status(500)
+      .json({ error: "We couldn't check your subscription status. Please try again." });
   }
 });
 
@@ -148,9 +164,7 @@ router.post('/verify-session', async (req: Request, res: Response) => {
     const customerId =
       typeof session.customer === 'string' ? session.customer : session.customer?.id;
     const subscriptionId =
-      typeof session.subscription === 'string'
-        ? session.subscription
-        : session.subscription?.id;
+      typeof session.subscription === 'string' ? session.subscription : session.subscription?.id;
 
     if (!customerId || !subscriptionId) {
       return res.status(400).json({ error: 'Invalid checkout session' });
@@ -182,9 +196,17 @@ router.post('/verify-session', async (req: Request, res: Response) => {
       status: subscription.status,
     });
   } catch (error) {
-    logger.error('Error verifying session', { userId, sessionId }, error instanceof Error ? error : undefined);
+    const userIdFromBody = (req.body as { userId?: string })?.userId;
+    const sessionIdFromBody = (req.body as { sessionId?: string })?.sessionId;
+    logger.error(
+      'Error verifying session',
+      { userId: userIdFromBody, sessionId: sessionIdFromBody },
+      error instanceof Error ? error : undefined
+    );
     if (error instanceof Error && error.message.includes('Stripe API key')) {
-      res.status(500).json({ error: "Payment verification is not configured. Please contact support." });
+      res
+        .status(500)
+        .json({ error: 'Payment verification is not configured. Please contact support.' });
     } else {
       res.status(500).json({ error: "We couldn't verify your payment. Please try again." });
     }
@@ -192,4 +214,3 @@ router.post('/verify-session', async (req: Request, res: Response) => {
 });
 
 export { router as subscriptionRoutes };
-

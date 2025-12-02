@@ -27,7 +27,12 @@ interface LogEntry {
 }
 
 class Logger {
-  private formatLog(level: LogLevel, message: string, context?: LogContext, error?: Error): LogEntry {
+  private formatLog(
+    level: LogLevel,
+    message: string,
+    context?: LogContext,
+    error?: Error
+  ): LogEntry {
     const entry: LogEntry = {
       timestamp: new Date().toISOString(),
       level,
@@ -91,4 +96,3 @@ class Logger {
 }
 
 export const logger = new Logger();
-

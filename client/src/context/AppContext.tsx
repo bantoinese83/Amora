@@ -25,6 +25,13 @@ interface ModalState {
   summary: Session | null;
 }
 
+export interface Toast {
+  id: string;
+  message: string;
+  type: 'success' | 'error' | 'info' | 'warning';
+  duration?: number;
+}
+
 interface AppContextType {
   // Auth
   authState: AuthState;
@@ -50,6 +57,11 @@ interface AppContextType {
   ) => Promise<Session | null>;
   updateSession: (id: string, updates: Partial<Session>) => Promise<void>;
   refreshSessions: () => Promise<void>;
+
+  // Toasts
+  toasts: Toast[];
+  showToast: (message: string, type?: Toast['type'], duration?: number) => void;
+  removeToast: (id: string) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -106,6 +118,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   // Session State
   const [sessions, setSessions] = useState<Session[]>([]);
   const [isLoadingSessions, setIsLoadingSessions] = useState(false);
+
+  // Toast State
+  const [toasts, setToasts] = useState<Toast[]>([]);
 
   // Prevent concurrent operations
   const loginInProgress = useRef(false);
@@ -191,6 +206,20 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
   }, []);
 
+  // Toast management (defined before login to avoid hoisting issues)
+  const showToast = useCallback(
+    (message: string, type: Toast['type'] = 'info', duration?: number) => {
+      const id = `toast-${Date.now()}-${Math.random()}`;
+      const newToast: Toast = { id, message, type, duration };
+      setToasts(prev => [...prev, newToast]);
+    },
+    []
+  );
+
+  const removeToast = useCallback((id: string) => {
+    setToasts(prev => prev.filter(toast => toast.id !== id));
+  }, []);
+
   // Login function - accepts user object directly (from authService)
   const login = useCallback(
     async (_email: string, _pin: string, _name?: string, user?: User) => {
@@ -245,6 +274,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
         // Close auth modal
         setModals(prev => ({ ...prev, auth: false }));
+
+        // Show welcome message
+        showToast(`Welcome${user.name ? `, ${user.name}` : ''}! 👋`, 'success', 3000);
       } catch (error) {
         // Reset state on error
         setCurrentUserId(null);
@@ -254,7 +286,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         loginInProgress.current = false;
       }
     },
-    [loadSessions]
+    [loadSessions, showToast]
   );
 
   // Logout function
@@ -377,6 +409,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             sessionId: newSession.id,
             duration,
           });
+          // Show success toast
+          showToast('Conversation saved successfully!', 'success');
         }
 
         return newSession;
@@ -386,10 +420,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
           { userId: currentUserId, duration },
           error instanceof Error ? error : undefined
         );
+        showToast("We couldn't save your conversation. Please try again.", 'error');
         return null;
       }
     },
-    [currentUserId, authState.user?.isPremium, sessions.length, openModal]
+    [currentUserId, authState.user?.isPremium, sessions.length, openModal, showToast]
   );
 
   const updateSession = useCallback(
@@ -445,6 +480,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         saveNewSession,
         updateSession,
         refreshSessions,
+        toasts,
+        showToast,
+        removeToast,
       }}
     >
       {children}

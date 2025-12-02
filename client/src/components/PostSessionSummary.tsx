@@ -52,8 +52,10 @@ export const PostSessionSummary: React.FC = () => {
     // 3. Check analysis limit for free users
     if (!isPremium) {
       // Count how many sessions already have analysis
-      const analysisCount = sessions.filter(s => s.analysis !== null && s.analysis !== undefined).length;
-      
+      const analysisCount = sessions.filter(
+        s => s.analysis !== null && s.analysis !== undefined
+      ).length;
+
       if (analysisCount >= limits.maxAnalyses) {
         // Free user has reached analysis limit
         setIsLoading(false);
@@ -142,14 +144,21 @@ export const PostSessionSummary: React.FC = () => {
             <Skeleton variant="rectangular" height={96} className="w-full" />
             <Skeleton variant="rectangular" height={64} className="w-full" />
           </div>
-        ) : !isPremium && !session.analysis && !analysis && (() => {
-          const analysisCount = sessions.filter(s => s.analysis !== null && s.analysis !== undefined).length;
-          return analysisCount >= limits.maxAnalyses;
-        })() ? (
+        ) : !isPremium &&
+          !session.analysis &&
+          !analysis &&
+          (() => {
+            const analysisCount = sessions.filter(
+              s => s.analysis !== null && s.analysis !== undefined
+            ).length;
+            return analysisCount >= limits.maxAnalyses;
+          })() ? (
           <div className="space-y-4 py-8 animate-in fade-in">
             <UpgradePrompt
               reason="analysis_limit"
-              currentCount={sessions.filter(s => s.analysis !== null && s.analysis !== undefined).length}
+              currentCount={
+                sessions.filter(s => s.analysis !== null && s.analysis !== undefined).length
+              }
               maxCount={limits.maxAnalyses}
             />
           </div>

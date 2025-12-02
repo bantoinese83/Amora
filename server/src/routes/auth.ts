@@ -25,7 +25,11 @@ router.post('/check-email', async (req: Request, res: Response) => {
     res.json({ exists });
   } catch (error) {
     const email = (req.body as { email?: string })?.email;
-    logger.error('Error checking email', { email: email || 'unknown' }, error instanceof Error ? error : undefined);
+    logger.error(
+      'Error checking email',
+      { email: email || 'unknown' },
+      error instanceof Error ? error : undefined
+    );
     res.status(500).json({ error: "We couldn't verify your email. Please try again." });
   }
 });
@@ -62,7 +66,11 @@ router.post('/signup', async (req: Request, res: Response) => {
     try {
       await preferencesRepository.initializePreferences(user.id);
     } catch (prefError) {
-      logger.warn('Failed to initialize preferences', { userId: user.id }, prefError instanceof Error ? prefError : undefined);
+      logger.warn(
+        'Failed to initialize preferences',
+        { userId: user.id },
+        prefError instanceof Error ? prefError : undefined
+      );
       // Continue even if preferences fail
     }
 
@@ -73,7 +81,11 @@ router.post('/signup', async (req: Request, res: Response) => {
     res.json({ user: userWithPrefs || user });
   } catch (error) {
     const emailFromBody = (req.body as { email?: string })?.email;
-    logger.error('Error signing up', { email: emailFromBody || 'unknown' }, error instanceof Error ? error : undefined);
+    logger.error(
+      'Error signing up',
+      { email: emailFromBody || 'unknown' },
+      error instanceof Error ? error : undefined
+    );
     res.status(500).json({ error: "We couldn't create your account. Please try again." });
   }
 });
@@ -112,8 +124,14 @@ router.post('/signin', async (req: Request, res: Response) => {
     res.json({ user: userWithPrefs || user });
   } catch (error) {
     const emailFromBody = (req.body as { email?: string })?.email;
-    logger.error('Error signing in', { email: emailFromBody || 'unknown' }, error instanceof Error ? error : undefined);
-    res.status(500).json({ error: "We couldn't sign you in. Please check your email and PIN and try again." });
+    logger.error(
+      'Error signing in',
+      { email: emailFromBody || 'unknown' },
+      error instanceof Error ? error : undefined
+    );
+    res
+      .status(500)
+      .json({ error: "We couldn't sign you in. Please check your email and PIN and try again." });
   }
 });
 
@@ -137,10 +155,13 @@ router.get('/user/:userId', async (req: Request, res: Response) => {
     res.json({ user });
   } catch (error) {
     const userId = req.params.userId;
-    logger.error('Error getting user', { userId: userId || 'unknown' }, error instanceof Error ? error : undefined);
+    logger.error(
+      'Error getting user',
+      { userId: userId || 'unknown' },
+      error instanceof Error ? error : undefined
+    );
     res.status(500).json({ error: "We couldn't load your account information. Please try again." });
   }
 });
 
 export { router as authRoutes };
-

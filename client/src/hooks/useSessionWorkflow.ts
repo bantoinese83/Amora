@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
 import { useVoiceClient } from './useVoiceClient';
 import { useSessionTimer } from './useSessionTimer';
@@ -12,7 +12,7 @@ import { getSubscriptionLimits } from '../services/subscriptionService';
  * Connects Voice Client, Timer, and Data Storage.
  */
 export function useSessionWorkflow() {
-  const { selectedVoice, saveNewSession, openModal, authState } = useApp();
+  const { selectedVoice, saveNewSession, openModal, authState, showToast, sessions } = useApp();
 
   // Get session duration based on subscription
   const isPremium = authState.user?.isPremium || false;
@@ -48,7 +48,7 @@ export function useSessionWorkflow() {
         }
       }
     },
-    [disconnect, transcripts, saveNewSession, openModal]
+    [disconnect, transcripts, saveNewSession, openModal, sessionDuration]
   );
 
   const handleTimerComplete = useCallback(() => {
@@ -61,6 +61,33 @@ export function useSessionWorkflow() {
     status === ConnectionStatus.CONNECTED,
     handleTimerComplete
   );
+
+  // Track if we've shown warnings to avoid duplicates
+  const warningShownRef = useRef<{ oneMinute: boolean; thirtySeconds: boolean }>({
+    oneMinute: false,
+    thirtySeconds: false,
+  });
+
+  // Show countdown warnings
+  useEffect(() => {
+    if (status !== ConnectionStatus.CONNECTED) {
+      // Reset warnings when disconnected
+      warningShownRef.current = { oneMinute: false, thirtySeconds: false };
+      return;
+    }
+
+    // Show warning at 1 minute remaining
+    if (timeLeft === 60 && !warningShownRef.current.oneMinute) {
+      warningShownRef.current.oneMinute = true;
+      showToast('1 minute remaining in your session', 'warning', 3000);
+    }
+
+    // Show warning at 30 seconds remaining
+    if (timeLeft === 30 && !warningShownRef.current.thirtySeconds) {
+      warningShownRef.current.thirtySeconds = true;
+      showToast('30 seconds remaining', 'warning', 3000);
+    }
+  }, [timeLeft, status, showToast]);
 
   // Auto-retry on connection errors
   const attemptReconnect = useCallback(async () => {
@@ -97,9 +124,33 @@ export function useSessionWorkflow() {
         openModal('auth');
         return;
       }
+
+      // Check session limit for free users (warn before starting)
+      const isPremium = authState.user?.isPremium || false;
+      if (!isPremium) {
+        const limits = getSubscriptionLimits(false);
+        const remainingSessions = limits.maxSessions - sessions.length;
+        if (remainingSessions <= 0) {
+          showToast(
+            `You've reached your session limit (${limits.maxSessions} sessions). Upgrade to premium for unlimited sessions.`,
+            'warning',
+            5000
+          );
+          openModal('auth'); // Open auth modal to show upgrade option
+          return;
+        } else if (remainingSessions === 1) {
+          showToast(
+            'This is your last free session. Upgrade to premium for unlimited sessions.',
+            'info',
+            4000
+          );
+        }
+      }
+
       // Start
       resetRetry();
       resetTimer();
+      warningShownRef.current = { oneMinute: false, thirtySeconds: false }; // Reset warnings
       const userName = authState.user?.name || 'there';
       await connect(selectedVoice, userName);
     }

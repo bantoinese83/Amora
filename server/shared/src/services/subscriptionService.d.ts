@@ -3,11 +3,11 @@
  * Handles subscription management, status checking, and feature gating
  */
 export interface SubscriptionStatus {
-    isActive: boolean;
-    subscriptionId?: string;
-    customerId?: string;
-    currentPeriodEnd?: Date;
-    cancelAtPeriodEnd?: boolean;
+  isActive: boolean;
+  subscriptionId?: string;
+  customerId?: string;
+  currentPeriodEnd?: Date;
+  cancelAtPeriodEnd?: boolean;
 }
 /**
  * Check if user has an active subscription
@@ -27,8 +27,8 @@ export declare function hasFeatureAccess(userId: string): Promise<boolean>;
  * Get subscription limits based on plan
  */
 export declare function getSubscriptionLimits(isPremium: boolean): {
-    maxSessions: number;
-    maxSessionDuration: number;
-    features: string[];
+  maxSessions: number;
+  maxSessionDuration: number;
+  features: string[];
 };
 //# sourceMappingURL=subscriptionService.d.ts.map
