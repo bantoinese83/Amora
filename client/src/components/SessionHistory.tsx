@@ -75,7 +75,7 @@ export const SessionHistory: React.FC = () => {
             </button>
           </div>
 
-          <div className="flex-1 overflow-y-auto space-y-4">
+          <div className="flex-1 overflow-y-auto space-y-4 pr-2">
             {/* Show upgrade prompt if free user has reached session limit */}
             {!isPremium && sessions.length >= limits.maxSessions && (
               <UpgradePrompt
