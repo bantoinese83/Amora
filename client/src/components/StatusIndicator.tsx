@@ -53,10 +53,22 @@ export const StatusIndicator: React.FC<StatusIndicatorProps> = ({ status, onRetr
       className={`
         flex items-center gap-3 px-5 py-2.5 rounded-full border backdrop-blur-md transition-all duration-500
         ${config.containerClass}
-        ${isClickable ? 'cursor-pointer hover:scale-105 active:scale-95 hover:shadow-lg' : ''}
+        ${isClickable ? 'cursor-pointer hover:scale-105 active:scale-95 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-amora-500 focus:ring-offset-2' : ''}
       `}
-      role={isClickable ? 'button' : undefined}
-      aria-label={isClickable ? 'Try again' : undefined}
+      role={isClickable ? 'button' : 'status'}
+      aria-label={isClickable ? 'Try again' : config.text}
+      aria-live="polite"
+      tabIndex={isClickable ? 0 : -1}
+      onKeyDown={
+        isClickable && onRetry
+          ? (e: React.KeyboardEvent) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onRetry();
+              }
+            }
+          : undefined
+      }
     >
       <div className="relative flex items-center justify-center w-2.5 h-2.5">
         <span

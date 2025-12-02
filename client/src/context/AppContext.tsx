@@ -105,10 +105,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   // Auth State
   const [authState, setAuthState] = useState<AuthState>({ isAuthenticated: false });
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [isLoadingAuth, setIsLoadingAuth] = useState(true); // Track if we're checking stored user
 
   // Modal State
   const [modals, setModals] = useState<ModalState>({
-    auth: true, // Start with auth open - required for security
+    auth: false, // Will be set after checking localStorage
     history: false,
     settings: false,
     summary: null,
@@ -141,6 +142,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       try {
         const storedUserId = safeLocalStorage.getItem(STORAGE_KEY_USER_ID);
         if (!storedUserId || storedUserId.trim() === '') {
+          // No stored user, show auth modal
+          setIsLoadingAuth(false);
+          setModals(prev => ({ ...prev, auth: true }));
           loadingUserRef.current = false;
           return;
         }
@@ -149,6 +153,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(storedUserId)) {
           logger.warn('Invalid user ID format in storage, clearing', { storedUserId });
           safeLocalStorage.removeItem(STORAGE_KEY_USER_ID);
+          setIsLoadingAuth(false);
+          setModals(prev => ({ ...prev, auth: true }));
           loadingUserRef.current = false;
           return;
         }
@@ -170,13 +176,16 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
           // Load sessions
           await loadSessions(user.id);
         } else {
-          // User not found, clear storage
+          // User not found, clear storage and show auth modal
           safeLocalStorage.removeItem(STORAGE_KEY_USER_ID);
+          setModals(prev => ({ ...prev, auth: true }));
         }
       } catch (error) {
         logger.error('Failed to load stored user', {}, error instanceof Error ? error : undefined);
         safeLocalStorage.removeItem(STORAGE_KEY_USER_ID);
+        setModals(prev => ({ ...prev, auth: true }));
       } finally {
+        setIsLoadingAuth(false);
         loadingUserRef.current = false;
       }
     };

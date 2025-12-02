@@ -70,21 +70,31 @@ export default function App() {
     <a.main style={{ background }} className="relative">
       {/* Connection Error Alert */}
       {status === ConnectionStatus.ERROR && (
-        <div className="absolute top-24 left-1/2 -translate-x-1/2 w-full max-w-md z-50 px-4">
+        <div
+          className="absolute top-24 left-1/2 -translate-x-1/2 w-full max-w-md z-50 px-4"
+          role="alert"
+          aria-live="assertive"
+        >
           <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3 backdrop-blur-md shadow-lg animate-in fade-in slide-in-from-top-4">
-            <div className="text-red-600 mt-0.5">
-              <AlertIcon className="w-5 h-5" />
+            <div className="text-red-600 mt-0.5 flex-shrink-0">
+              <AlertIcon className="w-5 h-5" aria-hidden="true" />
             </div>
-            <div className="flex-1">
-              <h3 className="text-red-700 font-semibold text-sm">Oops, something went wrong</h3>
+            <div className="flex-1 min-w-0">
+              <h3 className="text-red-700 font-semibold text-sm">Connection issue</h3>
               <p className="text-red-600/80 text-xs mt-1">
-                We're having trouble connecting. Please check your internet and try again.
+                We're having trouble connecting. Please check your internet connection and try again.
               </p>
+              <button
+                onClick={toggleSession}
+                className="mt-3 text-xs font-medium text-red-700 hover:text-red-800 underline focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 rounded px-1"
+              >
+                Try again
+              </button>
             </div>
             <button
               onClick={reset}
-              className="text-red-600 hover:text-red-700 transition-colors p-1"
-              aria-label="Close"
+              className="text-red-600 hover:text-red-700 transition-colors p-1 flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 rounded"
+              aria-label="Dismiss error message"
             >
               <XIcon className="w-4 h-4" />
             </button>

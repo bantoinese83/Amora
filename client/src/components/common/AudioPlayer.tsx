@@ -18,6 +18,8 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({ audioChunks, className
   const sourcesRef = useRef<AudioBufferSourceNode[]>([]);
   const startTimeRef = useRef<number>(0);
   const animationFrameRef = useRef<number | null>(null);
+  const isPlayingRef = useRef<boolean>(false);
+  const durationRef = useRef<number>(0);
 
   useEffect(() => {
     return () => {
@@ -78,6 +80,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({ audioChunks, className
     try {
       const { buffers, totalDuration } = await loadAudio();
       setDuration(totalDuration);
+      durationRef.current = totalDuration;
 
       if (!audioContextRef.current) return;
 
@@ -103,10 +106,12 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({ audioChunks, className
         source.addEventListener('ended', () => {
           sourcesRef.current = sourcesRef.current.filter(s => s !== source);
           if (sourcesRef.current.length === 0) {
+            isPlayingRef.current = false;
             setIsPlaying(false);
             setCurrentTime(0);
             if (animationFrameRef.current) {
               cancelAnimationFrame(animationFrameRef.current);
+              animationFrameRef.current = null;
             }
           }
         });
@@ -114,20 +119,28 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({ audioChunks, className
         sourcesRef.current.push(source);
       }
 
+      isPlayingRef.current = true;
       setIsPlaying(true);
       setIsLoading(false);
 
       // Update current time
       const updateTime = () => {
-        if (!audioContextRef.current || !isPlaying) return;
+        if (!audioContextRef.current || !isPlayingRef.current) {
+          animationFrameRef.current = null;
+          return;
+        }
 
         const elapsed = audioContextRef.current.currentTime - startTimeRef.current;
-        if (elapsed >= 0 && elapsed <= totalDuration) {
+        const totalDur = durationRef.current;
+        
+        if (elapsed >= 0 && elapsed <= totalDur) {
           setCurrentTime(elapsed);
           animationFrameRef.current = requestAnimationFrame(updateTime);
         } else {
+          isPlayingRef.current = false;
           setIsPlaying(false);
-          setCurrentTime(totalDuration);
+          setCurrentTime(totalDur);
+          animationFrameRef.current = null;
         }
       };
 
@@ -148,9 +161,11 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({ audioChunks, className
       }
     });
     sourcesRef.current = [];
+    isPlayingRef.current = false;
     setIsPlaying(false);
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
     }
   };
 

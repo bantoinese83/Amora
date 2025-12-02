@@ -29,7 +29,7 @@ export const Header: React.FC<HeaderProps> = ({
         <button
           id="onboarding-history-btn"
           onClick={onHistoryClick}
-          className="p-2 text-slate-600 hover:text-slate-900 transition-colors"
+          className="p-2 text-slate-600 hover:text-slate-900 transition-colors focus:outline-none focus:ring-2 focus:ring-amora-500 focus:ring-offset-2 rounded-lg"
           title="Your Conversations"
           aria-label="View your past conversations"
         >
@@ -38,7 +38,7 @@ export const Header: React.FC<HeaderProps> = ({
 
         <button
           onClick={onSettingsClick}
-          className="p-2 text-slate-600 hover:text-slate-900 transition-colors"
+          className="p-2 text-slate-600 hover:text-slate-900 transition-colors focus:outline-none focus:ring-2 focus:ring-amora-500 focus:ring-offset-2 rounded-lg"
           title="Voice Settings"
           aria-label="Open Voice Settings"
         >
@@ -60,21 +60,36 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* Timer Display */}
       {showTimer && (
-        <div className="absolute left-1/2 -translate-x-1/2 top-16 bg-white/80 backdrop-blur border border-slate-200 px-4 py-1 rounded-full text-slate-700 font-mono text-sm shadow-sm animate-in fade-in slide-in-from-top-2">
+        <div
+          className="absolute left-1/2 -translate-x-1/2 top-16 bg-white/80 backdrop-blur border border-slate-200 px-4 py-1 rounded-full text-slate-700 font-mono text-sm shadow-sm animate-in fade-in slide-in-from-top-2"
+          role="timer"
+          aria-live="polite"
+          aria-label={`Session time: ${formattedTime}`}
+        >
           {formattedTime}
         </div>
       )}
 
       {/* Network Status Indicator */}
       {!isOnline && (
-        <div className="absolute left-1/2 -translate-x-1/2 top-24 bg-red-50 border border-red-200 px-3 py-1 rounded-full text-red-600 text-xs font-medium animate-in fade-in slide-in-from-top-2 flex items-center gap-2">
-          <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+        <div
+          className="absolute left-1/2 -translate-x-1/2 top-24 bg-red-50 border border-red-200 px-3 py-1 rounded-full text-red-600 text-xs font-medium animate-in fade-in slide-in-from-top-2 flex items-center gap-2"
+          role="status"
+          aria-live="assertive"
+          aria-label="Network status: Offline"
+        >
+          <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" aria-hidden="true" />
           Offline
         </div>
       )}
       {isOnline && networkStatus === 'slow' && (
-        <div className="absolute left-1/2 -translate-x-1/2 top-24 bg-amber-50 border border-amber-200 px-3 py-1 rounded-full text-amber-600 text-xs font-medium animate-in fade-in slide-in-from-top-2 flex items-center gap-2">
-          <div className="w-2 h-2 bg-amber-500 rounded-full" />
+        <div
+          className="absolute left-1/2 -translate-x-1/2 top-24 bg-amber-50 border border-amber-200 px-3 py-1 rounded-full text-amber-600 text-xs font-medium animate-in fade-in slide-in-from-top-2 flex items-center gap-2"
+          role="status"
+          aria-live="polite"
+          aria-label="Network status: Slow connection"
+        >
+          <div className="w-2 h-2 bg-amber-500 rounded-full" aria-hidden="true" />
           Slow connection
         </div>
       )}
@@ -83,8 +98,8 @@ export const Header: React.FC<HeaderProps> = ({
       {isAuthenticated && user ? (
         <button
           onClick={onAuthClick}
-          className="flex items-center gap-3 pl-3 pr-1 py-1 bg-white/80 hover:bg-white border border-slate-200 rounded-full transition-all group backdrop-blur-sm"
-          aria-label="Manage Profile"
+          className="flex items-center gap-3 pl-3 pr-1 py-1 bg-white/80 hover:bg-white border border-slate-200 rounded-full transition-all group backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-amora-500 focus:ring-offset-2"
+          aria-label={`Manage Profile${user.isPremium ? ' - Premium User' : ''}`}
         >
           <div className="hidden sm:flex flex-col items-end">
             <div className="flex items-center gap-1.5">

@@ -8,6 +8,7 @@ import { Session } from '../types';
 import { UpgradePrompt } from './UpgradePrompt';
 import { getSubscriptionLimits } from '../services/subscriptionService';
 import { EmptyState } from './common/EmptyState';
+import { Skeleton } from './common/Skeleton';
 
 export const SessionHistory: React.FC = () => {
   const { sessions, modals, closeModal, openModal, authState, isLoadingSessions, deleteSession } =
@@ -119,7 +120,14 @@ export const SessionHistory: React.FC = () => {
               <div className="space-y-4 py-4">
                 {[1, 2, 3].map(i => (
                   <Card key={i} className="animate-pulse">
-                    <div className="h-20 bg-slate-200 rounded-lg"></div>
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-start">
+                        <Skeleton variant="text" width="120px" height="16px" />
+                        <Skeleton variant="rectangular" width="60px" height="24px" />
+                      </div>
+                      <Skeleton variant="text" width="100%" height="16px" />
+                      <Skeleton variant="text" width="80%" height="16px" />
+                    </div>
                   </Card>
                 ))}
               </div>
@@ -176,7 +184,7 @@ export const SessionHistory: React.FC = () => {
                           <button
                             onClick={e => handleConfirmDelete(e, session)}
                             disabled={deleting === session.id}
-                            className="px-2 py-1 text-xs font-medium text-white bg-red-500 hover:bg-red-600 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="px-2 py-1 text-xs font-medium text-white bg-red-500 hover:bg-red-600 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
                             title="Confirm Delete"
                             aria-label="Confirm delete"
                           >
@@ -185,7 +193,7 @@ export const SessionHistory: React.FC = () => {
                           <button
                             onClick={e => handleCancelDelete(e)}
                             disabled={deleting === session.id}
-                            className="px-2 py-1 text-xs font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="px-2 py-1 text-xs font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2"
                             title="Cancel"
                             aria-label="Cancel delete"
                           >
@@ -196,7 +204,7 @@ export const SessionHistory: React.FC = () => {
                         <>
                           <button
                             onClick={e => handleDownload(e, session)}
-                            className="p-1.5 text-slate-500 hover:text-amora-600 hover:bg-slate-100 rounded-full transition-colors"
+                            className="p-1.5 text-slate-500 hover:text-amora-600 hover:bg-slate-100 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-amora-500 focus:ring-offset-2"
                             title="Download Conversation"
                             aria-label={`Download conversation from ${formatDate(session.date)}`}
                           >
@@ -204,7 +212,7 @@ export const SessionHistory: React.FC = () => {
                           </button>
                           <button
                             onClick={e => handleDeleteClick(e, session)}
-                            className="p-1.5 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
+                            className="p-1.5 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
                             title="Delete Session"
                             aria-label={`Delete session from ${formatDate(session.date)}`}
                           >

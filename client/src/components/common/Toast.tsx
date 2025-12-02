@@ -63,10 +63,11 @@ export const ToastNotification: React.FC<ToastProps> = ({ toast, onClose }) => {
       className={`
         ${config.bg} ${config.border} ${config.text}
         border rounded-xl p-4 shadow-lg backdrop-blur-md
-        flex items-start gap-3 min-w-[300px] max-w-md
-        animate-in fade-in slide-in-from-right-4
+        flex items-start gap-3 w-full
+        transition-all duration-300 hover:shadow-xl
       `}
       role="alert"
+      aria-live={toast.type === 'error' ? 'assertive' : 'polite'}
     >
       <Icon className={`w-5 h-5 ${config.iconColor} flex-shrink-0 mt-0.5`} />
       <p className="flex-1 text-sm leading-relaxed">{toast.message}</p>
@@ -90,9 +91,21 @@ export const ToastContainer: React.FC<ToastContainerProps> = ({ toasts, onClose 
   if (toasts.length === 0) return null;
 
   return (
-    <div className="fixed top-24 right-4 z-[100] flex flex-col gap-3 pointer-events-none">
-      {toasts.map(toast => (
-        <div key={toast.id} className="pointer-events-auto">
+    <div
+      className="fixed top-24 right-4 z-[100] flex flex-col gap-3 pointer-events-none max-w-md w-full px-4 sm:px-0"
+      role="region"
+      aria-label="Notifications"
+      aria-live="polite"
+      aria-atomic="false"
+    >
+      {toasts.map((toast, index) => (
+        <div
+          key={toast.id}
+          className="pointer-events-auto animate-in fade-in slide-in-from-right-4"
+          style={{
+            animationDelay: `${index * 50}ms`,
+          }}
+        >
           <ToastNotification toast={toast} onClose={onClose} />
         </div>
       ))}
