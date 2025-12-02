@@ -410,7 +410,7 @@ export const AuthPaymentModal: React.FC = () => {
             <p className="text-slate-400 mb-3">
               A therapist, coach, and journal in one app. Enter your email to get started.
             </p>
-            <div className="flex items-center justify-center gap-2 mb-6 px-3 py-1.5 bg-slate-800/40 border border-slate-700 rounded-full w-fit mx-auto">
+            <div className="flex items-center justify-center gap-2 mb-6 px-3 py-1.5 bg-slate-800/50 border border-slate-700 rounded-full w-fit mx-auto">
               <span className="text-[10px] text-slate-300 font-medium">🛋️ Therapist</span>
               <span className="text-slate-600">•</span>
               <span className="text-[10px] text-slate-300 font-medium">🎯 Coach</span>

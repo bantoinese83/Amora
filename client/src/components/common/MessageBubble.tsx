@@ -25,7 +25,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
       className={`flex ${isUser ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-2 duration-300 group`}
     >
       <div
-        className={`relative max-w-[80%] rounded-2xl px-4 py-2 text-lg ${bubbleStyles} shadow-sm`}
+        className={`relative max-w-[80%] rounded-xl px-4 py-2 text-lg ${bubbleStyles} shadow-sm`}
       >
         {message.text}
 

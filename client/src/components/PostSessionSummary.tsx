@@ -191,7 +191,7 @@ export const PostSessionSummary: React.FC = () => {
           </div>
         ) : !analysis ? (
           <div className="space-y-4 py-8 animate-in fade-in text-center">
-            <Card className="p-4 bg-slate-800/40">
+            <Card className="p-4">
               <p className="text-slate-300 text-sm">
                 Session completed. View your conversation transcript below.
               </p>
@@ -201,13 +201,13 @@ export const PostSessionSummary: React.FC = () => {
           <div className="space-y-3 text-left animate-in fade-in slide-in-from-bottom-4 duration-500">
             {/* Mood & Summary */}
             <div className="space-y-3">
-              <Card className="flex flex-col items-center justify-center text-center p-3 bg-slate-800/40">
+              <Card className="flex flex-col items-center justify-center text-center p-3">
                 <span className="text-xs text-slate-500 uppercase font-bold tracking-wider mb-1">
                   Vibe
                 </span>
                 <span className="font-semibold text-amora-300 text-sm">{analysis?.mood}</span>
               </Card>
-              <Card className="p-3 flex flex-col justify-center bg-slate-800/40">
+              <Card className="p-3 flex flex-col justify-center">
                 <span className="text-xs text-slate-500 uppercase font-bold tracking-wider mb-1">
                   Summary
                 </span>
@@ -224,7 +224,7 @@ export const PostSessionSummary: React.FC = () => {
             </Card>
 
             {/* Action Item */}
-            <Card className="bg-slate-800/30 p-3">
+            <Card className="p-3">
               <h3 className="text-green-400 font-semibold mb-1.5 text-xs flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
                 Try This
@@ -252,7 +252,7 @@ export const PostSessionSummary: React.FC = () => {
                 variant="ghost"
                 onClick={() => setShowTranscript(!showTranscript)}
                 fullWidth
-                className="flex items-center justify-center gap-2 bg-slate-800/30 hover:bg-slate-800"
+                className="flex items-center justify-center gap-2"
               >
                 {showTranscript ? 'Hide' : 'Show'} Full Conversation ({session.transcript.length}{' '}
                 {session.transcript.length === 1 ? 'exchange' : 'exchanges'})

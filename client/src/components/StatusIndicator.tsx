@@ -13,7 +13,7 @@ export const StatusIndicator: React.FC<StatusIndicatorProps> = ({ status, onRetr
         return {
           text: 'Ready',
           subtext: 'Tap orb to start',
-          containerClass: 'bg-slate-800/40 border-slate-700/50 text-slate-400',
+          containerClass: 'bg-slate-800/50 border-slate-700 text-slate-400',
           indicatorClass: 'bg-slate-500',
         };
       case ConnectionStatus.CONNECTING:

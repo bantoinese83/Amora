@@ -93,7 +93,7 @@ export const Header: React.FC<HeaderProps> = ({
       {isAuthenticated && user ? (
         <button
           onClick={onAuthClick}
-          className="flex items-center gap-3 pl-3 pr-1 py-1 bg-slate-800/40 hover:bg-slate-800/60 border border-slate-700 rounded-full transition-all group"
+          className="flex items-center gap-3 pl-3 pr-1 py-1 bg-slate-800/50 hover:bg-slate-800/70 border border-slate-700 rounded-full transition-all group"
           aria-label="Manage Profile"
         >
           <div className="hidden sm:flex flex-col items-end">
@@ -124,7 +124,7 @@ export const Header: React.FC<HeaderProps> = ({
       ) : (
         <button
           onClick={onAuthClick}
-          className="bg-slate-800/50 hover:bg-slate-800 border border-slate-700 text-slate-300 px-4 py-2 rounded-full text-sm font-medium transition-colors backdrop-blur-sm focus:ring-2 focus:ring-amora-500 focus:outline-none"
+          className="bg-slate-800/50 hover:bg-slate-800/70 border border-slate-700 text-slate-300 px-4 py-2 rounded-full text-sm font-medium transition-colors backdrop-blur-sm focus:ring-2 focus:ring-amora-500 focus:outline-none"
           aria-label="Sign In"
         >
           Sign In

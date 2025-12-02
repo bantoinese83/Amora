@@ -103,7 +103,7 @@ export const PaymentCheckout: React.FC<PaymentCheckoutProps> = ({
         <p className="text-slate-400 text-sm leading-relaxed mb-2">
           Get unlimited therapy, coaching & journaling sessions
         </p>
-        <div className="flex items-center justify-center gap-2 px-3 py-1.5 bg-slate-800/40 border border-slate-700 rounded-full w-fit mx-auto">
+        <div className="flex items-center justify-center gap-2 px-3 py-1.5 bg-slate-800/50 border border-slate-700 rounded-full w-fit mx-auto">
           <span className="text-[10px] text-slate-300 font-medium">🛋️ Therapist</span>
           <span className="text-slate-600">•</span>
           <span className="text-[10px] text-slate-300 font-medium">🎯 Coach</span>
@@ -118,10 +118,10 @@ export const PaymentCheckout: React.FC<PaymentCheckoutProps> = ({
         <button
           onClick={() => setSelectedPlan('monthly')}
           disabled={isLoading}
-          className={`relative p-5 rounded-2xl border-2 transition-all duration-300 text-left ${
+          className={`relative p-5 rounded-xl border-2 transition-all duration-300 text-left ${
             selectedPlan === 'monthly'
               ? 'border-amora-500 bg-gradient-to-br from-amora-900/30 to-amora-800/20 shadow-lg shadow-amora-500/20 scale-105'
-              : 'border-slate-700 bg-slate-800/40 hover:border-slate-600 hover:bg-slate-800/60'
+              : 'border-slate-700 bg-slate-800/50 hover:border-slate-600 hover:bg-slate-800/60'
           } ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
         >
           <div className="space-y-2">
@@ -143,10 +143,10 @@ export const PaymentCheckout: React.FC<PaymentCheckoutProps> = ({
         <button
           onClick={() => setSelectedPlan('yearly')}
           disabled={isLoading}
-          className={`relative p-5 rounded-2xl border-2 transition-all duration-300 text-left ${
+          className={`relative p-5 rounded-xl border-2 transition-all duration-300 text-left ${
             selectedPlan === 'yearly'
               ? 'border-amora-500 bg-gradient-to-br from-amora-900/30 to-amora-800/20 shadow-lg shadow-amora-500/20 scale-105'
-              : 'border-slate-700 bg-slate-800/40 hover:border-slate-600 hover:bg-slate-800/60'
+              : 'border-slate-700 bg-slate-800/50 hover:border-slate-600 hover:bg-slate-800/60'
           } ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
         >
           {plans.yearly.savings && (
@@ -176,7 +176,7 @@ export const PaymentCheckout: React.FC<PaymentCheckoutProps> = ({
       </div>
 
       {/* Features List */}
-      <Card className="bg-gradient-to-br from-slate-800/60 to-slate-900/60 border-slate-700/50 p-5">
+      <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 border-slate-700 p-5">
         <div className="space-y-3">
           {features.map((feature, index) => (
             <div
