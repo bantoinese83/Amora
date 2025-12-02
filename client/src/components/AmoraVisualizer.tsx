@@ -38,7 +38,6 @@ export const AmoraVisualizer: React.FC<AmoraVisualizerProps> = ({
 
   // Determine current speaker from transcripts
   const currentSpeaker = transcripts.length > 0 ? transcripts[transcripts.length - 1]?.role : null;
-  const isUserSpeaking = currentSpeaker === 'user';
   const isAmoraSpeaking = currentSpeaker === 'assistant';
 
   // Change cursor on hovered state
@@ -58,10 +57,8 @@ export const AmoraVisualizer: React.FC<AmoraVisualizerProps> = ({
     }
   });
 
-  // Color schemes: Purple for Amora, Cyan/Teal for User
+  // Color: Always purple for Amora
   const amoraColor = '#8b5cf6'; // Purple
-  const userColor = '#06b6d4'; // Cyan/Teal
-  const baseColor = isUserSpeaking ? userColor : isAmoraSpeaking ? amoraColor : amoraColor;
 
   // Springs for color and overall looks
   const [{ wobble, coat, color, ambient, env, distort }] = useSpring(
@@ -70,7 +67,7 @@ export const AmoraVisualizer: React.FC<AmoraVisualizerProps> = ({
       coat: mode && !hovered ? 0.04 : 1,
       ambient: mode && !hovered ? 1.5 : 0.5,
       env: mode && !hovered ? 0.4 : 1,
-      color: hovered ? '#a78bfa' : baseColor,
+      color: hovered ? '#a78bfa' : amoraColor,
       distort: isActive ? 0.4 : hovered ? 0.2 : 0.1,
       config: (n: string) => {
         if (n === 'wobble' && hovered) {
@@ -79,14 +76,14 @@ export const AmoraVisualizer: React.FC<AmoraVisualizerProps> = ({
         return {};
       },
     },
-    [mode, hovered, down, isActive, baseColor]
+    [mode, hovered, down, isActive]
   );
 
   return (
     <>
       <PerspectiveCamera makeDefault position={[0, 0, 4]} fov={75}>
         <a.ambientLight intensity={ambient} />
-        <a.pointLight ref={light} position-z={-15} intensity={env} color={baseColor} />
+        <a.pointLight ref={light} position-z={-15} intensity={env} color={amoraColor} />
       </PerspectiveCamera>
       <Suspense fallback={null}>
         <AmoraOrb
@@ -97,7 +94,6 @@ export const AmoraVisualizer: React.FC<AmoraVisualizerProps> = ({
           env={env}
           coat={coat}
           distort={distort}
-          isUserSpeaking={isUserSpeaking}
           isAmoraSpeaking={isAmoraSpeaking}
           onPointerOver={() => setHovered(true)}
           onPointerOut={() => setHovered(false)}
@@ -138,7 +134,6 @@ interface AmoraOrbProps {
   env: any;
   coat: any;
   distort: any;
-  isUserSpeaking: boolean;
   isAmoraSpeaking: boolean;
   onPointerOver: () => void;
   onPointerOut: () => void;
@@ -154,7 +149,6 @@ function AmoraOrb({
   env,
   coat,
   distort,
-  isUserSpeaking,
   isAmoraSpeaking,
   onPointerOver,
   onPointerOut,
@@ -163,78 +157,116 @@ function AmoraOrb({
 }: AmoraOrbProps) {
   const sphere = useRef<THREE.Mesh>(null);
   const materialRef = useRef<any>(null);
+  
+  // Smooth audio values - only react when Amora is speaking
   const smoothVolume = useRef(0);
   const smoothBass = useRef(0);
   const smoothMid = useRef(0);
   const smoothHigh = useRef(0);
-  const morphTarget = useRef(0);
-  const rotationSpeed = useRef(0);
+  
+  // Wave phase tracking for fluid ripple effects
+  const wavePhase = useRef(0);
+  const bassWavePhase = useRef(0);
+  const midWavePhase = useRef(0);
+  const highWavePhase = useRef(0);
+  
+  // Subtle movement and rotation
+  const baseRotation = useRef(0);
+  const floatOffset = useRef(0);
 
   useFrame((state) => {
-    const { volume, data } = audioRef.current;
-    const bassEnergy = calculateBassEnergy(data);
-    const midEnergy = calculateMidEnergy(data);
-    const highEnergy = calculateHighEnergy(data);
+    const time = state.clock.elapsedTime;
+    
+    // Only process audio when Amora is speaking
+    if (isAmoraSpeaking && isActive) {
+      const { volume, data } = audioRef.current;
+      const bassEnergy = calculateBassEnergy(data);
+      const midEnergy = calculateMidEnergy(data);
+      const highEnergy = calculateHighEnergy(data);
 
-    // Smooth audio values with different speeds for different frequencies
-    smoothVolume.current += (volume - smoothVolume.current) * 0.25;
-    smoothBass.current += (bassEnergy - smoothBass.current) * 0.3;
-    smoothMid.current += (midEnergy - smoothMid.current) * 0.25;
-    smoothHigh.current += (highEnergy - smoothHigh.current) * 0.2;
+      // Smooth audio values with slower, more calculated smoothing
+      const smoothingFactor = 0.15; // More subtle smoothing
+      smoothVolume.current += (volume - smoothVolume.current) * smoothingFactor;
+      smoothBass.current += (bassEnergy - smoothBass.current) * smoothingFactor;
+      smoothMid.current += (midEnergy - smoothMid.current) * smoothingFactor;
+      smoothHigh.current += (highEnergy - smoothHigh.current) * smoothingFactor;
 
-    // Morph target based on who's speaking and audio characteristics
-    if (isUserSpeaking) {
-      // User: More angular, sharper shapes, faster rotation
-      morphTarget.current += (0.9 + smoothHigh.current * 0.5 - morphTarget.current) * 0.2;
-      rotationSpeed.current += (smoothVolume.current * 3 - rotationSpeed.current) * 0.15;
-    } else if (isAmoraSpeaking) {
-      // Amora: More fluid, smoother shapes, gentler rotation
-      morphTarget.current += (0.2 + smoothBass.current * 0.6 - morphTarget.current) * 0.2;
-      rotationSpeed.current += (smoothVolume.current * 2 - rotationSpeed.current) * 0.15;
+      // Update wave phases for fluid ripple effects
+      // Each frequency band has its own wave phase for layered effects
+      const bassSpeed = 0.5 + smoothBass.current * 0.3; // Slower for bass
+      const midSpeed = 1.0 + smoothMid.current * 0.5; // Medium speed
+      const highSpeed = 1.5 + smoothHigh.current * 0.7; // Faster for high frequencies
+      
+      bassWavePhase.current += bassSpeed * 0.02;
+      midWavePhase.current += midSpeed * 0.02;
+      highWavePhase.current += highSpeed * 0.02;
+      wavePhase.current += (0.8 + smoothVolume.current * 0.4) * 0.02;
     } else {
-      // Idle: Gentle morphing
-      morphTarget.current += (0.5 - morphTarget.current) * 0.1;
-      rotationSpeed.current += (0.1 - rotationSpeed.current) * 0.1;
+      // When Amora is not speaking, gradually fade out audio reactions
+      smoothVolume.current *= 0.95;
+      smoothBass.current *= 0.95;
+      smoothMid.current *= 0.95;
+      smoothHigh.current *= 0.95;
+      
+      // Continue gentle wave motion
+      wavePhase.current += 0.01;
+      bassWavePhase.current += 0.01;
+      midWavePhase.current += 0.01;
+      highWavePhase.current += 0.01;
     }
 
     if (sphere.current) {
-      // Position: Float and react to audio with more movement
-      const time = state.clock.elapsedTime;
-      const floatY = Math.sin(time / 1.2) / 5 + smoothVolume.current * 0.6;
-      const floatX = Math.cos(time / 1.8) / 8 + smoothMid.current * 0.3;
-      sphere.current.position.y = THREE.MathUtils.lerp(sphere.current.position.y, floatY, 0.25);
-      sphere.current.position.x = THREE.MathUtils.lerp(sphere.current.position.x, floatX, 0.2);
+      // Subtle floating movement - very gentle
+      const baseFloat = Math.sin(time / 2.0) * 0.1;
+      floatOffset.current += (baseFloat - floatOffset.current) * 0.05;
+      sphere.current.position.y = floatOffset.current;
 
-      // Rotation: Spin based on audio and speaker - much more dynamic
-      const baseRotation = time * rotationSpeed.current;
-      const audioRotationX = smoothBass.current * Math.PI;
-      const audioRotationY = smoothMid.current * Math.PI * 0.7;
-      const audioRotationZ = smoothHigh.current * Math.PI * 0.5;
+      // Very subtle rotation - slow and calculated
+      baseRotation.current += 0.01;
+      const rotationInfluence = isAmoraSpeaking ? smoothVolume.current * 0.1 : 0;
+      sphere.current.rotation.y = baseRotation.current + rotationInfluence;
+      sphere.current.rotation.x = Math.sin(time / 3.0) * 0.1;
 
-      sphere.current.rotation.x = baseRotation * 0.4 + audioRotationX;
-      sphere.current.rotation.y = baseRotation * 0.6 + audioRotationY;
-      sphere.current.rotation.z = baseRotation * 0.3 + audioRotationZ;
-
-      // Scale: Pulse with audio - more dramatic
+      // Subtle scale pulse - very gentle
       const baseScale = 1.0;
-      const volumePulse = smoothVolume.current * 0.4;
-      const bassThump = smoothBass.current * 0.3;
-      const midPulse = smoothMid.current * 0.2;
-      const scale = baseScale + volumePulse + bassThump + midPulse;
+      const volumePulse = smoothVolume.current * 0.08; // Much more subtle
+      const bassPulse = smoothBass.current * 0.05;
+      const scale = baseScale + volumePulse + bassPulse;
       sphere.current.scale.setScalar(scale);
     }
 
-    // Update material properties for morphing effects
+    // Update material properties for wave-like distortion effects
     if (materialRef.current) {
-      // Distortion based on audio and morph target - much more reactive
-      const audioDistort = smoothVolume.current * 0.8 + smoothBass.current * 0.6 + smoothMid.current * 0.4;
-      const morphDistort = morphTarget.current * 0.4;
-      const finalDistort = audioDistort + morphDistort;
+      if (isAmoraSpeaking && isActive) {
+        // Create calculated wave distortion based on frequency bands
+        // Bass creates slow, deep waves
+        const bassWave = Math.sin(bassWavePhase.current) * smoothBass.current * 0.15;
+        // Mid creates medium waves
+        const midWave = Math.sin(midWavePhase.current * 1.3) * smoothMid.current * 0.12;
+        // High creates fast, subtle ripples
+        const highWave = Math.sin(highWavePhase.current * 2.0) * smoothHigh.current * 0.08;
+        
+        // Combine waves for fluid, layered ripple effect
+        const waveDistort = bassWave + midWave + highWave;
+        
+        // Base distortion from volume (subtle)
+        const volumeDistort = smoothVolume.current * 0.15;
+        
+        // Total distortion - calculated and smooth
+        const finalDistort = Math.max(0, Math.min(0.4, volumeDistort + waveDistort));
 
-      // Speed: Faster when active, varies with audio
-      materialRef.current.speed = isActive ? 3 + smoothVolume.current * 3 + smoothBass.current * 2 : 1;
+        // Speed: Subtle variation based on audio
+        const baseSpeed = 1.0;
+        const speedVariation = smoothVolume.current * 0.5 + smoothBass.current * 0.3;
+        materialRef.current.speed = baseSpeed + speedVariation;
 
-      materialRef.current.distort = Math.max(0, Math.min(1, finalDistort));
+        materialRef.current.distort = finalDistort;
+      } else {
+        // Idle state - very subtle, gentle motion
+        const idleWave = Math.sin(wavePhase.current) * 0.05;
+        materialRef.current.distort = Math.max(0, Math.min(0.2, idleWave + 0.1));
+        materialRef.current.speed = 0.8;
+      }
     }
   });
 
@@ -249,18 +281,18 @@ function AmoraOrb({
         onPointerDown={onPointerDown}
         onPointerUp={onPointerUp}
       >
-        {/* Use icosahedron for more interesting morphing potential */}
-        <icosahedronGeometry args={[1, 4]} />
+        {/* Use sphere with more segments for smoother wave effects */}
+        <sphereGeometry args={[1, 64, 64]} />
         <AnimatedMaterial
           ref={materialRef}
           color={color}
           envMapIntensity={env}
           clearcoat={coat}
           clearcoatRoughness={0}
-          metalness={isUserSpeaking ? 0.4 : isAmoraSpeaking ? 0.1 : 0.1}
-          roughness={isUserSpeaking ? 0.25 : isAmoraSpeaking ? 0.1 : 0.2}
+          metalness={0.1}
+          roughness={0.15}
           distort={distort}
-          speed={isActive ? 2 : 1}
+          speed={isActive ? 1.0 : 0.8}
         />
       </a.mesh>
     </>
