@@ -61,19 +61,21 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, classNa
     >
       <div
         ref={modalRef}
-        className={`bg-white border border-slate-200 p-8 rounded-2xl shadow-xl relative animate-in fade-in slide-in-from-bottom-4 max-h-[90vh] overflow-y-auto ${className}`}
+        className={`bg-white border border-slate-200 rounded-2xl shadow-xl relative animate-in fade-in slide-in-from-bottom-4 max-h-[90vh] flex flex-col ${className}`}
         style={{ isolation: 'isolate' }}
       >
         {onClose && (
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 text-slate-400 hover:text-slate-900 transition-colors focus:outline-none focus:ring-2 focus:ring-amora-500 rounded-lg p-1"
+            className="absolute top-4 right-4 z-10 text-slate-400 hover:text-slate-900 transition-colors focus:outline-none focus:ring-2 focus:ring-amora-500 rounded-lg p-1 bg-white/90 backdrop-blur-sm"
             aria-label="Close"
           >
             <XIcon />
           </button>
         )}
-        {children}
+        <div className="p-8 overflow-y-auto flex-1 min-h-0 pr-12">
+          {children}
+        </div>
       </div>
     </div>
   );
