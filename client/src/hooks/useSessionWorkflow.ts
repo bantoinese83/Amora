@@ -40,15 +40,31 @@ export function useSessionWorkflow() {
       // If manual, duration is max - left. If timer, duration is max.
       const duration = isManual ? sessionDuration - timeLeft : sessionDuration;
 
-      // 3. Save Data
+      // 3. Save Data (optimistic UI - show summary immediately, save in background)
       if (transcripts.length > 0) {
+        // Optimistically create session object for immediate UI feedback
+        const optimisticSession = {
+          id: `temp-${Date.now()}`,
+          date: new Date().toISOString(),
+          durationSeconds: duration,
+          preview: transcripts[0]?.text || 'New conversation',
+          transcript: transcripts,
+          analysis: null,
+          audioChunks: audioChunks || undefined,
+        };
+
+        // Show summary modal immediately (optimistic update)
+        openModal('summary', optimisticSession);
+
+        // Save in background
         const newSession = await saveNewSession(transcripts, duration, audioChunks);
         if (newSession) {
+          // Update modal with real session data
           openModal('summary', newSession);
         }
       }
     },
-    [disconnect, transcripts, saveNewSession, openModal, sessionDuration]
+    [disconnect, transcripts, saveNewSession, openModal, sessionDuration, audioChunks]
   );
 
   const handleTimerComplete = useCallback(() => {

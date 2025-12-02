@@ -43,6 +43,9 @@ export function useVoiceClient() {
 
   const connect = useCallback(
     async (voiceName: string = 'Kore', userName?: string) => {
+      // Optimistic UI: Update status immediately for perceived performance
+      setStatus(ConnectionStatus.CONNECTING);
+
       // Disconnect existing client if any, but wait a bit to ensure cleanup
       if (liveClientRef.current) {
         try {
@@ -78,12 +81,15 @@ export function useVoiceClient() {
           voiceName: voiceName,
           userName: userName,
         });
+        // Status will be updated by handleStatusChange callback
       } catch (error) {
         logger.error(
           'Voice client connection failed',
           { voiceName },
           error instanceof Error ? error : undefined
         );
+        // Update status to error on failure
+        setStatus(ConnectionStatus.ERROR);
         // Cleanup on connection failure
         if (liveClientRef.current) {
           await liveClientRef.current.disconnect();

@@ -10,12 +10,14 @@ import { useApp } from './context/AppContext';
 import { useSessionWorkflow } from './hooks/useSessionWorkflow';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { useQuickActions } from './hooks/useQuickActions';
+import { useNetworkStatus } from './hooks/useNetworkStatus';
 import { ConnectionStatus } from './types';
 import { AlertIcon, XIcon } from './components/common/Icons';
 import { QuickActionsMenu } from './components/QuickActionsMenu';
 
 export default function App() {
-  const { openModal, authState } = useApp();
+  const { openModal, authState, showToast } = useApp();
+  const { isOnline, networkStatus } = useNetworkStatus();
 
   // Use the orchestration hook to handle business logic
   const {
@@ -39,6 +41,15 @@ export default function App() {
       reset();
     }
   }, [authState.isAuthenticated, status, reset]);
+
+  // Show offline notification
+  React.useEffect(() => {
+    if (!isOnline) {
+      showToast('You are offline. Please check your internet connection.', 'warning', 5000);
+    } else if (networkStatus === 'slow') {
+      showToast('Your connection is slow. Some features may not work properly.', 'info', 4000);
+    }
+  }, [isOnline, networkStatus, showToast]);
 
   // "Wow" Factor: Keyboard Shortcuts
   useKeyboardShortcuts({

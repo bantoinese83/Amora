@@ -1,6 +1,7 @@
 import React from 'react';
 import { AuthState } from '../types';
 import { HistoryIcon, SettingsIcon } from './common/Icons';
+import { useNetworkStatus } from '../hooks/useNetworkStatus';
 
 interface HeaderProps {
   onHistoryClick: () => void;
@@ -20,6 +21,7 @@ export const Header: React.FC<HeaderProps> = ({
   formattedTime,
 }) => {
   const { isAuthenticated, user } = authState;
+  const { isOnline, networkStatus } = useNetworkStatus();
 
   return (
     <header className="w-full max-w-4xl flex justify-between items-center z-10 p-4">
@@ -57,6 +59,20 @@ export const Header: React.FC<HeaderProps> = ({
       {showTimer && (
         <div className="absolute left-1/2 -translate-x-1/2 top-8 bg-slate-900/80 backdrop-blur border border-slate-700 px-4 py-1 rounded-full text-amora-300 font-mono text-sm shadow-sm animate-in fade-in slide-in-from-top-2">
           {formattedTime}
+        </div>
+      )}
+
+      {/* Network Status Indicator */}
+      {!isOnline && (
+        <div className="absolute left-1/2 -translate-x-1/2 top-20 bg-red-500/10 border border-red-500/30 px-3 py-1 rounded-full text-red-300 text-xs font-medium animate-in fade-in slide-in-from-top-2 flex items-center gap-2">
+          <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+          Offline
+        </div>
+      )}
+      {isOnline && networkStatus === 'slow' && (
+        <div className="absolute left-1/2 -translate-x-1/2 top-20 bg-amber-500/10 border border-amber-500/30 px-3 py-1 rounded-full text-amber-300 text-xs font-medium animate-in fade-in slide-in-from-top-2 flex items-center gap-2">
+          <div className="w-2 h-2 bg-amber-500 rounded-full" />
+          Slow connection
         </div>
       )}
 

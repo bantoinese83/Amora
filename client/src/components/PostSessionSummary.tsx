@@ -25,6 +25,7 @@ export const PostSessionSummary: React.FC = () => {
 
   const [analysis, setAnalysis] = useState<SessionAnalysis | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
   const [showTranscript, setShowTranscript] = useState(false);
   const generationRef = useRef<string | null>(null);
@@ -33,9 +34,21 @@ export const PostSessionSummary: React.FC = () => {
   useEffect(() => {
     if (!session) {
       setAnalysis(null);
+      setIsSaving(false);
       generationRef.current = null;
       return;
     }
+
+    // Check if this is an optimistic session (temporary ID)
+    const isOptimistic = session.id.startsWith('temp-');
+    if (isOptimistic) {
+      setIsSaving(true);
+      setIsLoading(true);
+      // Wait for real session to be saved (will be updated via modal prop change)
+      return;
+    }
+
+    setIsSaving(false);
 
     // 1. If the session object already has analysis (e.g. opened from history), use it.
     if (session.analysis) {
@@ -130,7 +143,11 @@ export const PostSessionSummary: React.FC = () => {
             )}
           </div>
           <h2 className="text-xl font-bold text-white">
-            {isLoading ? 'Reflecting on your conversation...' : analysis?.title || 'All done!'}
+            {isSaving
+              ? 'Saving your conversation...'
+              : isLoading
+                ? 'Reflecting on your conversation...'
+                : analysis?.title || 'All done!'}
           </h2>
           <p className="text-slate-400 text-xs mt-1">
             {formatDuration(session.durationSeconds)} • {session.transcript.length}{' '}
