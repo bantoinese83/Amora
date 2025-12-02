@@ -35,7 +35,6 @@ export const AmoraVisualizer: React.FC<AmoraVisualizerProps> = ({
   const [down, setDown] = useState(false);
   const [hovered, setHovered] = useState(false);
   const light = useRef<THREE.PointLight>(null);
-  const rippleLight = useRef<THREE.PointLight>(null);
 
   // Determine current speaker from transcripts
   const currentSpeaker = transcripts.length > 0 ? transcripts[transcripts.length - 1]?.role : null;
@@ -57,10 +56,6 @@ export const AmoraVisualizer: React.FC<AmoraVisualizerProps> = ({
       light.current.position.x = state.mouse.x * 20;
       light.current.position.y = state.mouse.y * 20;
     }
-    if (rippleLight.current) {
-      rippleLight.current.position.x = state.mouse.x * 15;
-      rippleLight.current.position.y = state.mouse.y * 15;
-    }
   });
 
   // Color schemes: Purple for Amora, Cyan/Teal for User
@@ -69,13 +64,12 @@ export const AmoraVisualizer: React.FC<AmoraVisualizerProps> = ({
   const baseColor = isUserSpeaking ? userColor : isAmoraSpeaking ? amoraColor : amoraColor;
 
   // Springs for color and overall looks
-  const [{ wobble, coat, color, ambient, env, envRipple, distort }] = useSpring(
+  const [{ wobble, coat, color, ambient, env, distort }] = useSpring(
     {
       wobble: down ? 1.2 : hovered ? 1.05 : isActive ? 1.1 : 1,
       coat: mode && !hovered ? 0.04 : 1,
       ambient: mode && !hovered ? 1.5 : 0.5,
       env: mode && !hovered ? 0.4 : 1,
-      envRipple: mode && !hovered ? 0.2 : 0.5,
       color: hovered ? '#a78bfa' : baseColor,
       distort: isActive ? 0.4 : hovered ? 0.2 : 0.1,
       config: (n: string) => {
@@ -93,7 +87,6 @@ export const AmoraVisualizer: React.FC<AmoraVisualizerProps> = ({
       <PerspectiveCamera makeDefault position={[0, 0, 4]} fov={75}>
         <a.ambientLight intensity={ambient} />
         <a.pointLight ref={light} position-z={-15} intensity={env} color={baseColor} />
-        <a.pointLight ref={rippleLight} position-z={-10} intensity={envRipple} color={baseColor} />
       </PerspectiveCamera>
       <Suspense fallback={null}>
         <AmoraOrb
@@ -169,19 +162,13 @@ function AmoraOrb({
   onPointerUp,
 }: AmoraOrbProps) {
   const sphere = useRef<THREE.Mesh>(null);
-  const ripple1 = useRef<THREE.Mesh>(null);
-  const ripple2 = useRef<THREE.Mesh>(null);
-  const ripple3 = useRef<THREE.Mesh>(null);
   const materialRef = useRef<any>(null);
   const smoothVolume = useRef(0);
   const smoothBass = useRef(0);
   const smoothMid = useRef(0);
   const smoothHigh = useRef(0);
-  const glitchAmount = useRef(0);
-  const rippleIntensity = useRef(0);
   const morphTarget = useRef(0);
   const rotationSpeed = useRef(0);
-  const lastGlitchTime = useRef(0);
 
   useFrame((state) => {
     const { volume, data } = audioRef.current;
@@ -194,12 +181,6 @@ function AmoraOrb({
     smoothBass.current += (bassEnergy - smoothBass.current) * 0.3;
     smoothMid.current += (midEnergy - smoothMid.current) * 0.25;
     smoothHigh.current += (highEnergy - smoothHigh.current) * 0.2;
-
-    // Calculate glitch amount based on high frequencies (more glitchy on sharp sounds)
-    glitchAmount.current += (highEnergy * 3 - glitchAmount.current) * 0.4;
-
-    // Ripple intensity based on overall volume - much more reactive
-    rippleIntensity.current += (smoothVolume.current * 5 - rippleIntensity.current) * 0.3;
 
     // Morph target based on who's speaking and audio characteristics
     if (isUserSpeaking) {
@@ -216,10 +197,9 @@ function AmoraOrb({
       rotationSpeed.current += (0.1 - rotationSpeed.current) * 0.1;
     }
 
-    const time = state.clock.elapsedTime;
-
     if (sphere.current) {
       // Position: Float and react to audio with more movement
+      const time = state.clock.elapsedTime;
       const floatY = Math.sin(time / 1.2) / 5 + smoothVolume.current * 0.6;
       const floatX = Math.cos(time / 1.8) / 8 + smoothMid.current * 0.3;
       sphere.current.position.y = THREE.MathUtils.lerp(sphere.current.position.y, floatY, 0.25);
@@ -244,74 +224,22 @@ function AmoraOrb({
       sphere.current.scale.setScalar(scale);
     }
 
-    // Ripple effects - expanding rings
-    const rippleSpeed = 0.8;
-    const rippleScale = 1.0 + rippleIntensity.current * 2;
-    const rippleOpacity = Math.max(0, 1 - rippleIntensity.current * 0.8);
-
-    if (ripple1.current) {
-      const progress1 = (time * rippleSpeed) % 1;
-      ripple1.current.scale.setScalar(1 + progress1 * rippleScale);
-      if (ripple1.current.material instanceof THREE.MeshBasicMaterial) {
-        ripple1.current.material.opacity = rippleOpacity * (1 - progress1);
-      }
-    }
-
-    if (ripple2.current) {
-      const progress2 = ((time * rippleSpeed + 0.33) % 1);
-      ripple2.current.scale.setScalar(1 + progress2 * rippleScale);
-      if (ripple2.current.material instanceof THREE.MeshBasicMaterial) {
-        ripple2.current.material.opacity = rippleOpacity * (1 - progress2);
-      }
-    }
-
-    if (ripple3.current) {
-      const progress3 = ((time * rippleSpeed + 0.66) % 1);
-      ripple3.current.scale.setScalar(1 + progress3 * rippleScale);
-      if (ripple3.current.material instanceof THREE.MeshBasicMaterial) {
-        ripple3.current.material.opacity = rippleOpacity * (1 - progress3);
-      }
-    }
-
-    // Update material properties for morphing and glitch effects
+    // Update material properties for morphing effects
     if (materialRef.current) {
       // Distortion based on audio and morph target - much more reactive
       const audioDistort = smoothVolume.current * 0.8 + smoothBass.current * 0.6 + smoothMid.current * 0.4;
       const morphDistort = morphTarget.current * 0.4;
-      let finalDistort = audioDistort + morphDistort;
+      const finalDistort = audioDistort + morphDistort;
 
       // Speed: Faster when active, varies with audio
       materialRef.current.speed = isActive ? 3 + smoothVolume.current * 3 + smoothBass.current * 2 : 1;
-
-      // Glitch effect: Random distortion spikes when high frequencies are strong
-      if (glitchAmount.current > 0.2 && time - lastGlitchTime.current > 0.1) {
-        const glitch = (Math.random() - 0.5) * glitchAmount.current * 0.3;
-        finalDistort += glitch;
-        lastGlitchTime.current = time;
-      }
 
       materialRef.current.distort = Math.max(0, Math.min(1, finalDistort));
     }
   });
 
-  const rippleColor = isUserSpeaking ? '#06b6d4' : '#8b5cf6';
-
   return (
-    <group>
-      {/* Ripple effects - expanding rings */}
-      <mesh ref={ripple1}>
-        <ringGeometry args={[1.1, 1.2, 32]} />
-        <meshBasicMaterial color={rippleColor} transparent opacity={0} side={THREE.DoubleSide} />
-      </mesh>
-      <mesh ref={ripple2}>
-        <ringGeometry args={[1.1, 1.2, 32]} />
-        <meshBasicMaterial color={rippleColor} transparent opacity={0} side={THREE.DoubleSide} />
-      </mesh>
-      <mesh ref={ripple3}>
-        <ringGeometry args={[1.1, 1.2, 32]} />
-        <meshBasicMaterial color={rippleColor} transparent opacity={0} side={THREE.DoubleSide} />
-      </mesh>
-
+    <>
       {/* Main orb */}
       <a.mesh
         ref={sphere}
@@ -335,6 +263,6 @@ function AmoraOrb({
           speed={isActive ? 2 : 1}
         />
       </a.mesh>
-    </group>
+    </>
   );
 }
