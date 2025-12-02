@@ -19,11 +19,38 @@ config();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Middleware
+// Middleware - CORS configuration
+// When credentials: true, origin cannot be '*', must be specific origins
+const allowedOrigins = [
+  process.env.CLIENT_URL,
+  'https://amora-mu.vercel.app',
+  'http://localhost:3000',
+  'http://localhost:5173', // Vite default port
+].filter((origin): origin is string => Boolean(origin));
+
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || '*',
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps, Postman, or same-origin requests)
+      if (!origin) {
+        return callback(null, true);
+      }
+      
+      // Check if origin is in allowed list
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        // In development, allow localhost with any port
+        if (process.env.NODE_ENV !== 'production' && origin.startsWith('http://localhost:')) {
+          callback(null, true);
+        } else {
+          callback(new Error('Not allowed by CORS'));
+        }
+      }
+    },
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   })
 );
 // Increase body size limit for session routes (audio chunks can be large)
