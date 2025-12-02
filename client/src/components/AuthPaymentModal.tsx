@@ -7,7 +7,7 @@ import { Button } from './common/Button';
 import { PaymentCheckout } from './PaymentCheckout';
 import { ProgressIndicator } from './common/ProgressIndicator';
 import { checkEmail, signUp, signIn } from '../services/authService';
-import { updatePremiumStatus } from '../services/subscriptionService';
+import { updatePremiumStatus, getSubscriptionDetails } from '../services/subscriptionService';
 import {
   checkPaymentStatus,
   cleanupPaymentParams,
@@ -27,6 +27,11 @@ export const AuthPaymentModal: React.FC = () => {
   const [authError, setAuthError] = useState<string | null>(null);
   const [showPayment, setShowPayment] = useState(false);
   const [isLoadingPortal, setIsLoadingPortal] = useState(false);
+  const [subscriptionDetails, setSubscriptionDetails] = useState<{
+    paymentMethod?: string;
+    nextBilling?: string;
+  } | null>(null);
+  const [isLoadingSubscription, setIsLoadingSubscription] = useState(false);
 
   // Prevent concurrent operations
   const authInProgress = useRef(false);
@@ -284,6 +289,46 @@ export const AuthPaymentModal: React.FC = () => {
 
   // Determine if user is premium (must be defined before useEffects that use it)
   const isPremium = authState.user?.isPremium || false;
+
+  // Fetch subscription details when premium user view is shown
+  useEffect(() => {
+    const fetchSubscriptionDetails = async () => {
+      if (!modals.auth || !isPremium || !authState.user?.id) {
+        setSubscriptionDetails(null);
+        return;
+      }
+
+      setIsLoadingSubscription(true);
+      try {
+        const details = await getSubscriptionDetails(authState.user.id);
+        if (details) {
+          setSubscriptionDetails({
+            paymentMethod: details.paymentMethod,
+            nextBilling: details.currentPeriodEnd
+              ? new Date(details.currentPeriodEnd).toLocaleDateString('en-US', {
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric',
+                })
+              : undefined,
+          });
+        } else {
+          setSubscriptionDetails(null);
+        }
+      } catch (error) {
+        logger.error(
+          'Failed to fetch subscription details',
+          { userId: authState.user?.id },
+          error instanceof Error ? error : undefined
+        );
+        setSubscriptionDetails(null);
+      } finally {
+        setIsLoadingSubscription(false);
+      }
+    };
+
+    fetchSubscriptionDetails();
+  }, [modals.auth, isPremium, authState.user?.id]);
 
   // If authenticated and not premium, show payment checkout directly
   const shouldShowPayment = authState.isAuthenticated && !isPremium;
@@ -626,16 +671,35 @@ export const AuthPaymentModal: React.FC = () => {
             Active Plan
           </div>
 
-          <Card className="text-left mb-6">
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-slate-300">Payment Method</span>
-              <span className="text-white font-mono">•••• 4242</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-slate-300">Next Billing</span>
-              <span className="text-white">Nov 12, 2025</span>
-            </div>
-          </Card>
+          {isLoadingSubscription ? (
+            <Card className="text-center mb-6 py-6">
+              <div className="flex items-center justify-center">
+                <div className="w-5 h-5 border-2 border-amora-500 border-t-transparent rounded-full animate-spin" />
+              </div>
+            </Card>
+          ) : subscriptionDetails ? (
+            <Card className="text-left mb-6">
+              {subscriptionDetails.paymentMethod && (
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-slate-300">Payment Method</span>
+                  <span className="text-white font-mono">{subscriptionDetails.paymentMethod}</span>
+                </div>
+              )}
+              {subscriptionDetails.nextBilling && (
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-300">Next Billing</span>
+                  <span className="text-white">{subscriptionDetails.nextBilling}</span>
+                </div>
+              )}
+              {!subscriptionDetails.paymentMethod && !subscriptionDetails.nextBilling && (
+                <div className="text-center py-2">
+                  <p className="text-slate-400 text-sm">
+                    Subscription details will appear after your first payment
+                  </p>
+                </div>
+              )}
+            </Card>
+          ) : null}
 
           <div className="space-y-3">
             <Button

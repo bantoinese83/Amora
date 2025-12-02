@@ -12,6 +12,8 @@ export interface SubscriptionStatus {
   customerId?: string;
   currentPeriodEnd?: Date;
   cancelAtPeriodEnd?: boolean;
+  paymentMethod?: string; // e.g., "•••• 4242"
+  paymentBrand?: string; // e.g., "visa", "mastercard"
 }
 
 /**
@@ -64,6 +66,44 @@ export async function updatePremiumStatus(userId: string, isPremium: boolean): P
 export async function hasFeatureAccess(userId: string): Promise<boolean> {
   const status = await checkSubscriptionStatus(userId);
   return status.isActive;
+}
+
+/**
+ * Get subscription details including payment method and billing date
+ */
+export async function getSubscriptionDetails(userId: string): Promise<SubscriptionStatus | null> {
+  try {
+    const API_URL = import.meta.env.VITE_API_URL || 'https://amora-server-production.up.railway.app';
+    const response = await fetch(`${API_URL}/api/subscription/status/${userId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      logger.error('Failed to fetch subscription details', { userId, status: response.status });
+      return null;
+    }
+
+    const data = await response.json();
+    return {
+      isActive: data.isActive || false,
+      subscriptionId: data.subscriptionId,
+      customerId: data.customerId,
+      currentPeriodEnd: data.currentPeriodEnd ? new Date(data.currentPeriodEnd) : undefined,
+      cancelAtPeriodEnd: data.cancelAtPeriodEnd || false,
+      paymentMethod: data.paymentMethod,
+      paymentBrand: data.paymentBrand,
+    };
+  } catch (error) {
+    logger.error(
+      'Error fetching subscription details',
+      { userId },
+      error instanceof Error ? error : undefined
+    );
+    return null;
+  }
 }
 
 /**

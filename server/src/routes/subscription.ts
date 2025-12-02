@@ -49,7 +49,9 @@ router.get('/status/:userId', async (req: Request, res: Response) => {
         )) as Stripe.Customer;
 
         if (user.stripe_subscription_id) {
-          const subscription = await stripe.subscriptions.retrieve(user.stripe_subscription_id);
+          const subscription = await stripe.subscriptions.retrieve(user.stripe_subscription_id, {
+            expand: ['default_payment_method'],
+          });
           const isActive = subscription.status === 'active' || subscription.status === 'trialing';
 
           // Sync status if different
@@ -62,6 +64,21 @@ router.get('/status/:userId', async (req: Request, res: Response) => {
             );
           }
 
+          // Get payment method details
+          let paymentMethod: { last4?: string; brand?: string } | undefined;
+          if (subscription.default_payment_method) {
+            const pm =
+              typeof subscription.default_payment_method === 'string'
+                ? await stripe.paymentMethods.retrieve(subscription.default_payment_method)
+                : subscription.default_payment_method;
+            if (pm && 'card' in pm && pm.card) {
+              paymentMethod = {
+                last4: pm.card.last4,
+                brand: pm.card.brand,
+              };
+            }
+          }
+
           return res.json({
             isActive,
             subscriptionId: subscription.id,
@@ -71,6 +88,8 @@ router.get('/status/:userId', async (req: Request, res: Response) => {
               ? new Date(subscription.current_period_end * 1000).toISOString()
               : undefined,
             cancelAtPeriodEnd: subscription.cancel_at_period_end,
+            paymentMethod: paymentMethod?.last4 ? `•••• ${paymentMethod.last4}` : undefined,
+            paymentBrand: paymentMethod?.brand,
           });
         } else {
           // Customer exists but no subscription - check for any active subscriptions
@@ -82,7 +101,9 @@ router.get('/status/:userId', async (req: Request, res: Response) => {
           });
 
           if (subscriptions.data.length > 0) {
-            const subscription = subscriptions.data[0];
+            const subscription = await stripe.subscriptions.retrieve(subscriptions.data[0].id, {
+              expand: ['default_payment_method'],
+            });
             const isActive = subscription.status === 'active' || subscription.status === 'trialing';
 
             // Update user with subscription ID
@@ -93,6 +114,21 @@ router.get('/status/:userId', async (req: Request, res: Response) => {
               isActive
             );
 
+            // Get payment method details
+            let paymentMethod: { last4?: string; brand?: string } | undefined;
+            if (subscription.default_payment_method) {
+              const pm =
+                typeof subscription.default_payment_method === 'string'
+                  ? await stripe.paymentMethods.retrieve(subscription.default_payment_method)
+                  : subscription.default_payment_method;
+              if (pm && 'card' in pm && pm.card) {
+                paymentMethod = {
+                  last4: pm.card.last4,
+                  brand: pm.card.brand,
+                };
+              }
+            }
+
             return res.json({
               isActive,
               subscriptionId: subscription.id,
@@ -102,6 +138,8 @@ router.get('/status/:userId', async (req: Request, res: Response) => {
                 ? new Date(subscription.current_period_end * 1000).toISOString()
                 : undefined,
               cancelAtPeriodEnd: subscription.cancel_at_period_end,
+              paymentMethod: paymentMethod?.last4 ? `•••• ${paymentMethod.last4}` : undefined,
+              paymentBrand: paymentMethod?.brand,
             });
           }
         }
