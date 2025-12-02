@@ -6,7 +6,7 @@
 import { Router, Request, Response } from 'express';
 import { sessionRepository } from '../../../shared/dist/src/repositories/sessionRepository.js';
 import { Session, MessageLog, AudioChunk } from '../../../shared/dist/src/types/index.js';
-import { logger } from '../utils/logger';
+import { logger } from '../utils/logger.js';
 
 const router = Router();
 

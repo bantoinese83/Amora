@@ -6,7 +6,7 @@
 import { Router, Request, Response } from 'express';
 import { userRepository } from '../../../shared/dist/src/repositories/userRepository.js';
 import { preferencesRepository } from '../../../shared/dist/src/repositories/preferencesRepository.js';
-import { logger } from '../utils/logger';
+import { logger } from '../utils/logger.js';
 
 const router = Router();
 

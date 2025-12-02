@@ -6,7 +6,7 @@
 import { Router, Request, Response } from 'express';
 import Stripe from 'stripe';
 import { StripeCheckoutSessionParams } from '../types/index.js';
-import { logger } from '../utils/logger';
+import { logger } from '../utils/logger.js';
 
 const router = Router();
 

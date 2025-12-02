@@ -4,7 +4,7 @@
  */
 
 import { userRepository } from '../../../shared/dist/src/repositories/userRepository.js';
-import { logger } from '../utils/logger';
+import { logger } from '../utils/logger.js';
 
 /**
  * Update user premium status
