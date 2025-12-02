@@ -129,7 +129,7 @@ export const PostSessionSummary: React.FC = () => {
       onClose={() => closeModal('summary')}
       className="max-w-lg w-auto max-h-[90vh] overflow-hidden flex flex-col"
     >
-      <div className="text-center transform transition-all scale-100 opacity-100 overflow-y-auto flex-1 min-h-0">
+      <div className="text-center transform transition-all scale-100 opacity-100 overflow-y-auto flex-1 min-h-0" style={{ isolation: 'isolate' }}>
         {/* Header Status */}
         <div className="mb-4">
           <div className="w-14 h-14 bg-amora-500 text-white rounded-full flex items-center justify-center mx-auto mb-3 border-4 border-white shadow-xl">

@@ -50,7 +50,7 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, classNa
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-white/80 backdrop-blur-sm p-4 animate-in fade-in"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-white/90 p-4 animate-in fade-in"
       onClick={e => {
         if (e.target === e.currentTarget && onClose) {
           onClose();
@@ -62,6 +62,7 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, classNa
       <div
         ref={modalRef}
         className={`bg-white border border-slate-200 p-8 rounded-2xl shadow-xl relative animate-in fade-in slide-in-from-bottom-4 max-h-[90vh] overflow-y-auto ${className}`}
+        style={{ isolation: 'isolate' }}
       >
         {onClose && (
           <button
