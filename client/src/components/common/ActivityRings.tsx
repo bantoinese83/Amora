@@ -18,7 +18,7 @@ interface CircleProgressProps {
 }
 
 const CircleProgress = ({ data, index }: CircleProgressProps) => {
-  const strokeWidth = 16;
+  const strokeWidth = 10; // Further reduced for better fit
   const radius = (data.size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
   const progress = ((100 - data.value) / 100) * circumference;
@@ -100,17 +100,19 @@ interface DetailedActivityInfoProps {
 const DetailedActivityInfo = ({ activities }: DetailedActivityInfoProps) => {
   return (
     <motion.div
-      className="flex flex-col gap-6 ml-8"
+      className="flex flex-col gap-3"
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.5, delay: 0.3 }}
     >
       {activities.map(activity => (
         <motion.div key={activity.label} className="flex flex-col">
-          <span className="text-sm font-medium text-slate-600">{activity.label}</span>
-          <span className="text-2xl font-semibold" style={{ color: activity.color }}>
+          <span className="text-[10px] font-medium text-slate-600 uppercase tracking-wide">
+            {activity.label}
+          </span>
+          <span className="text-lg font-semibold leading-tight" style={{ color: activity.color }}>
             {activity.current}/{activity.target}
-            <span className="text-base ml-1 text-slate-600">{activity.unit}</span>
+            <span className="text-xs ml-1 text-slate-600 font-normal">{activity.unit}</span>
           </span>
         </motion.div>
       ))}
@@ -148,7 +150,7 @@ export const ActivityRings: React.FC<ActivityRingsProps> = ({
       label: 'DURATION',
       value: durationValue,
       color: '#8b5cf6', // Amora purple
-      size: 200,
+      size: 120,
       current: durationMinutes,
       target: durationTarget,
       unit: 'MIN',
@@ -157,7 +159,7 @@ export const ActivityRings: React.FC<ActivityRingsProps> = ({
       label: 'EXCHANGES',
       value: exchangesValue,
       color: '#06b6d4', // Cyan
-      size: 160,
+      size: 95,
       current: transcriptLength,
       target: exchangesTarget,
       unit: 'EX',
@@ -166,7 +168,7 @@ export const ActivityRings: React.FC<ActivityRingsProps> = ({
       label: 'ENGAGEMENT',
       value: engagementValue,
       color: '#10b981', // Green
-      size: 120,
+      size: 70,
       current: engagementScore,
       target: 75,
       unit: '%',
@@ -174,18 +176,18 @@ export const ActivityRings: React.FC<ActivityRingsProps> = ({
   ];
 
   return (
-    <div className={cn('relative w-full max-w-3xl mx-auto p-6 rounded-3xl', className)}>
-      <div className="flex flex-col items-center gap-6">
+    <div className={cn('relative w-full mx-auto rounded-3xl', className)}>
+      <div className="flex flex-col items-center gap-3 h-full justify-center">
         <motion.h2
-          className="text-xl font-medium text-slate-900"
+          className="text-base font-medium text-slate-900 mb-1"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
           Session Activity
         </motion.h2>
-        <div className="flex items-center">
-          <div className="relative w-[180px] h-[180px]">
+        <div className="flex flex-row items-center justify-center gap-3 md:gap-4 w-full">
+          <div className="relative w-[120px] h-[120px] flex-shrink-0">
             {activities.map((activity, index) => (
               <CircleProgress key={activity.label} data={activity} index={index} />
             ))}

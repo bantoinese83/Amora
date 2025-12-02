@@ -157,7 +157,7 @@ main {
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  padding: 40px 40px 80px 40px;
+  padding: 120px 40px 120px 40px; /* Top padding to avoid Header, bottom padding to avoid ControlBar */
   overflow-y: hidden;
   overflow-x: hidden;
   height: 100%;
@@ -174,32 +174,52 @@ main {
   overflow-y: auto;
   overflow-x: hidden;
   pointer-events: auto;
+  /* Add padding on the right to prevent scrollbar from overlapping content */
+  padding-right: 12px;
+  margin-right: -12px; /* Compensate for padding to maintain layout */
+  /* Firefox scrollbar - thin and very transparent */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(139, 92, 246, 0.15) transparent;
+  /* Prevent scrolling past the top - content cannot scroll into header */
+  scroll-padding-top: 0;
 }
 
-/* Custom scrollbar styling for overlay - positioned on the right edge */
+/* Scrollable content wrapper - padding handled inline when needed */
+.overlay-scrollable > div {
+  /* Padding-top is set inline in component when scrollable */
+}
+
+/* Ensure SVG content respects header space when scrolling */
+.overlay-scrollable svg {
+  margin-top: 0;
+  padding-top: 0;
+  /* Add top spacing in viewBox calculation - content starts below header */
+}
+
+/* Custom scrollbar styling for overlay - more discreet and subtle */
 .overlay-scrollable::-webkit-scrollbar {
-  width: 4px;
+  width: 4px; /* Very thin scrollbar */
 }
 
 .overlay-scrollable::-webkit-scrollbar-track {
   background: transparent;
-  margin: 20px 0;
+  margin: 20px 0 120px 0; /* Extra bottom margin to avoid ControlBar */
 }
 
 .overlay-scrollable::-webkit-scrollbar-thumb {
-  background: rgba(139, 92, 246, 0.3);
+  background: rgba(139, 92, 246, 0.2); /* Very subtle by default */
   border-radius: 2px;
-  transition: background 0.2s;
+  transition: background 0.2s ease, opacity 0.2s ease;
+  /* Make it more visible on hover */
 }
 
-.overlay-scrollable::-webkit-scrollbar-thumb:hover {
-  background: rgba(139, 92, 246, 0.5);
+/* Show scrollbar thumb more prominently on hover */
+.overlay-scrollable:hover::-webkit-scrollbar-thumb {
+  background: rgba(139, 92, 246, 0.4);
 }
 
-/* Firefox scrollbar */
-.overlay-scrollable {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(139, 92, 246, 0.3) transparent;
+.overlay-scrollable::-webkit-scrollbar-thumb:active {
+  background: rgba(139, 92, 246, 0.6);
 }
 
 .overlay svg {

@@ -132,7 +132,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({ audioChunks, className
 
         const elapsed = audioContextRef.current.currentTime - startTimeRef.current;
         const totalDur = durationRef.current;
-        
+
         if (elapsed >= 0 && elapsed <= totalDur) {
           setCurrentTime(elapsed);
           animationFrameRef.current = requestAnimationFrame(updateTime);

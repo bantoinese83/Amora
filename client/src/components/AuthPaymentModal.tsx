@@ -8,7 +8,12 @@ import { PaymentCheckout } from './PaymentCheckout';
 import { ProgressIndicator } from './common/ProgressIndicator';
 import { TherapistIcon, CoachIcon, JournalIcon } from './common/Icons';
 import { checkEmail, signUp, signIn } from '../services/authService';
-import { updatePremiumStatus, getSubscriptionDetails } from '../services/subscriptionService';
+import {
+  updatePremiumStatus,
+  getSubscriptionDetails,
+  invalidateSubscriptionCache,
+} from '../services/subscriptionService';
+import { invalidateUserCache } from '../services/authService';
 import {
   checkPaymentStatus,
   cleanupPaymentParams,
@@ -38,6 +43,8 @@ export const AuthPaymentModal: React.FC = () => {
   const authInProgress = useRef(false);
   const checkingEmailRef = useRef(false);
 
+  const [pinComplete, setPinComplete] = useState(false);
+
   const {
     values,
     error,
@@ -47,8 +54,12 @@ export const AuthPaymentModal: React.FC = () => {
   } = usePinInput(4, async () => {
     // PIN entered - authenticate or sign up
     // Auto-submit when all 4 digits are entered
-    if (!authInProgress.current) {
-      await handleAuth();
+    setPinComplete(true);
+    if (!authInProgress.current && !isLoading) {
+      // Small delay to ensure UI updates before starting auth
+      setTimeout(() => {
+        handleAuth();
+      }, 100);
     }
   });
 
@@ -80,6 +91,7 @@ export const AuthPaymentModal: React.FC = () => {
     if (!/^\d{4}$/.test(pin)) {
       setAuthError('PIN must be 4 digits');
       resetPin();
+      setPinComplete(false);
       return;
     }
 
@@ -106,6 +118,7 @@ export const AuthPaymentModal: React.FC = () => {
         setIsLoading(false);
         authInProgress.current = false;
         checkingEmailRef.current = false;
+        setPinComplete(false); // Reset so user can try again
         return;
       } finally {
         checkingEmailRef.current = false;
@@ -123,6 +136,7 @@ export const AuthPaymentModal: React.FC = () => {
           setAuthError(errorMessage);
           setIsLoading(false);
           authInProgress.current = false;
+          setPinComplete(false); // Reset so user can try again
           return;
         }
       } else {
@@ -154,6 +168,7 @@ export const AuthPaymentModal: React.FC = () => {
           setAuthError(errorMessage);
           setIsLoading(false);
           authInProgress.current = false;
+          setPinComplete(false); // Reset so user can try again
           return;
         }
       }
@@ -195,6 +210,7 @@ export const AuthPaymentModal: React.FC = () => {
 
     setMode('pin');
     setAuthError(null);
+    setPinComplete(false); // Reset pin complete state when entering PIN mode
     setTimeout(() => {
       const pinInput = document.getElementById('pin-0');
       if (pinInput) {
@@ -246,6 +262,9 @@ export const AuthPaymentModal: React.FC = () => {
 
         // Fallback: Update premium status directly
         await updatePremiumStatus(userId, true);
+        // Invalidate caches before reload
+        invalidateUserCache(userId);
+        invalidateSubscriptionCache(userId);
         cleanupPaymentParams();
         window.location.reload();
       } catch (error) {
@@ -342,6 +361,7 @@ export const AuthPaymentModal: React.FC = () => {
       setName('');
       setAuthError(null);
       setShowPayment(false);
+      setPinComplete(false);
       resetPin();
       authInProgress.current = false;
       checkingEmailRef.current = false;
@@ -537,7 +557,11 @@ export const AuthPaymentModal: React.FC = () => {
               )}
               <p className="text-xs text-slate-500 mt-1">Existing users can leave this blank.</p>
             </div>
-            <p className="text-slate-600 mb-8">Enter your 4-digit PIN to continue</p>
+            <p className="text-slate-600 mb-8">
+              {pinComplete && isLoading
+                ? 'Verifying your PIN...'
+                : 'Enter your 4-digit PIN to continue'}
+            </p>
 
             <div
               className="flex justify-center gap-4 mb-6"
@@ -596,22 +620,26 @@ export const AuthPaymentModal: React.FC = () => {
               </div>
             )}
 
-            {/* Continue button - appears when PIN is complete */}
-            {values.every(v => v !== '') && !isLoading && (
-              <div className="mb-4">
-                <Button
-                  onClick={async () => {
-                    if (!authInProgress.current) {
-                      await handleAuth();
-                    }
-                  }}
-                  fullWidth
-                  disabled={isLoading || authInProgress.current}
-                >
-                  Continue
-                </Button>
-              </div>
-            )}
+            {/* Continue button - only shows if auto-login hasn't started yet */}
+            {values.every(v => v !== '') &&
+              !isLoading &&
+              !pinComplete &&
+              !authInProgress.current && (
+                <div className="mb-4">
+                  <Button
+                    onClick={async () => {
+                      if (!authInProgress.current) {
+                        setPinComplete(true);
+                        await handleAuth();
+                      }
+                    }}
+                    fullWidth
+                    disabled={isLoading || authInProgress.current}
+                  >
+                    Continue
+                  </Button>
+                </div>
+              )}
 
             <button
               type="button"
@@ -619,6 +647,7 @@ export const AuthPaymentModal: React.FC = () => {
                 if (!isLoading && !authInProgress.current) {
                   setMode('email');
                   setAuthError(null);
+                  setPinComplete(false);
                   resetPin();
                 }
               }}

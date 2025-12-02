@@ -82,7 +82,8 @@ export default function App() {
             <div className="flex-1 min-w-0">
               <h3 className="text-red-700 font-semibold text-sm">Connection issue</h3>
               <p className="text-red-600/80 text-xs mt-1">
-                We're having trouble connecting. Please check your internet connection and try again.
+                We're having trouble connecting. Please check your internet connection and try
+                again.
               </p>
               <button
                 onClick={toggleSession}
@@ -103,7 +104,7 @@ export default function App() {
       )}
 
       {/* Header */}
-      <div className="absolute top-0 left-0 right-0 z-50">
+      <div className="absolute top-0 left-0 right-0 z-50 bg-gradient-to-b from-white/95 to-white/80 backdrop-blur-md">
         <Header
           onHistoryClick={() => openModal('history')}
           onSettingsClick={() => openModal('settings')}

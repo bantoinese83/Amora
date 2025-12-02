@@ -284,6 +284,25 @@ amora---voice-ai/
 3. **Type Safety**: TypeScript strict mode is enabled - all types must be properly defined
 4. **Linting**: ESLint is configured with zero warnings policy - all warnings must be resolved
 
+### Git Hooks (Pre-Push Checks)
+
+To ensure code quality, a pre-push hook automatically runs type checks and builds before allowing a push:
+
+**Install the hook:**
+```bash
+npm run install:hooks
+```
+
+**What it does:**
+- ✅ Type checks client code (`npm run type-check:client`)
+- ✅ Type checks server code (`npm run type-check:server`)
+- ✅ Builds client (`npm run build:client`)
+- ✅ Builds server (`npm run build:server`)
+
+If any step fails, the push will be **aborted**. This ensures that only working, type-safe code is pushed to the repository.
+
+**Note**: The hook runs automatically on every `git push`. To skip it (not recommended), use `git push --no-verify`.
+
 ---
 
 ## 🗄️ Database Setup

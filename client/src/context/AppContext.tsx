@@ -17,6 +17,7 @@ import {
 import { preferencesRepository } from '@shared/repositories/preferencesRepository';
 import { getUser, type User } from '../services/authService';
 import { getSubscriptionLimits } from '@shared/services/subscriptionService';
+import { cache } from '../utils/cache';
 import { logger } from '../utils/logger';
 
 interface ModalState {
@@ -105,7 +106,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   // Auth State
   const [authState, setAuthState] = useState<AuthState>({ isAuthenticated: false });
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-  const [isLoadingAuth, setIsLoadingAuth] = useState(true); // Track if we're checking stored user
 
   // Modal State
   const [modals, setModals] = useState<ModalState>({
@@ -143,7 +143,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         const storedUserId = safeLocalStorage.getItem(STORAGE_KEY_USER_ID);
         if (!storedUserId || storedUserId.trim() === '') {
           // No stored user, show auth modal
-          setIsLoadingAuth(false);
           setModals(prev => ({ ...prev, auth: true }));
           loadingUserRef.current = false;
           return;
@@ -153,7 +152,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(storedUserId)) {
           logger.warn('Invalid user ID format in storage, clearing', { storedUserId });
           safeLocalStorage.removeItem(STORAGE_KEY_USER_ID);
-          setIsLoadingAuth(false);
           setModals(prev => ({ ...prev, auth: true }));
           loadingUserRef.current = false;
           return;
@@ -185,7 +183,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         safeLocalStorage.removeItem(STORAGE_KEY_USER_ID);
         setModals(prev => ({ ...prev, auth: true }));
       } finally {
-        setIsLoadingAuth(false);
         loadingUserRef.current = false;
       }
     };
@@ -302,15 +299,23 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   // Logout function
   const logout = useCallback(() => {
+    const userId = currentUserId;
     setCurrentUserId(null);
     setAuthState({ isAuthenticated: false });
     setSessions([]);
     setSelectedVoiceState('Kore');
     safeLocalStorage.removeItem(STORAGE_KEY_USER_ID);
     setModals(prev => ({ ...prev, auth: true }));
+
+    // Clear all user-related cache on logout
+    if (userId) {
+      cache.clearUser(userId);
+      logger.info('User cache cleared on logout', { userId });
+    }
+
     // Note: Active voice sessions should be disconnected by the component
     // that manages the voice client (useSessionWorkflow)
-  }, []);
+  }, [currentUserId]);
 
   const openModal = useCallback((key: keyof ModalState, data?: unknown) => {
     setModals(prev => ({ ...prev, [key]: data !== undefined ? data : true }));

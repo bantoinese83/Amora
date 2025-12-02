@@ -4,6 +4,7 @@
  */
 
 import { logger } from '../utils/logger';
+import { cache, CacheKeys } from '../utils/cache';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://amora-server-production.up.railway.app';
 
@@ -84,6 +85,13 @@ export async function signUp(email: string, pin: string, name: string): Promise<
 
     const data: AuthResponse = await response.json();
     logger.info('User signed up successfully', { userId: data.user.id, email });
+
+    // Cache the new user immediately
+    cache.set(CacheKeys.user(data.user.id), data.user, {
+      ttl: 5 * 60 * 1000,
+      persist: true,
+    });
+
     return data.user;
   } catch (error) {
     logger.error('Sign up error', { email }, error instanceof Error ? error : undefined);
@@ -120,6 +128,13 @@ export async function signIn(email: string, pin: string): Promise<User> {
 
     const data: AuthResponse = await response.json();
     logger.info('User signed in successfully', { userId: data.user.id, email });
+
+    // Cache the user immediately after sign in
+    cache.set(CacheKeys.user(data.user.id), data.user, {
+      ttl: 5 * 60 * 1000,
+      persist: true,
+    });
+
     return data.user;
   } catch (error) {
     logger.error('Sign in error', { email }, error instanceof Error ? error : undefined);
@@ -133,8 +148,18 @@ export async function signIn(email: string, pin: string): Promise<User> {
 
 /**
  * Get user with preferences
+ * Cached for 5 minutes to reduce API calls
  */
 export async function getUser(userId: string): Promise<User> {
+  const cacheKey = CacheKeys.user(userId);
+
+  // Check cache first
+  const cached = cache.get<User>(cacheKey);
+  if (cached) {
+    logger.info('User data retrieved from cache', { userId });
+    return cached;
+  }
+
   try {
     const response = await fetch(`${API_URL}/api/auth/user/${userId}`, {
       method: 'GET',
@@ -156,6 +181,13 @@ export async function getUser(userId: string): Promise<User> {
     }
 
     const data: AuthResponse = await response.json();
+
+    // Cache the user data (persist to localStorage for offline support)
+    cache.set(cacheKey, data.user, {
+      ttl: 5 * 60 * 1000, // 5 minutes
+      persist: true, // Persist to localStorage for offline access
+    });
+
     return data.user;
   } catch (error) {
     logger.error('Get user error', { userId }, error instanceof Error ? error : undefined);
@@ -165,4 +197,12 @@ export async function getUser(userId: string): Promise<User> {
         : "We couldn't load your account information. Please try again.";
     throw new Error(userMessage);
   }
+}
+
+/**
+ * Invalidate user cache (call after user updates)
+ */
+export function invalidateUserCache(userId: string): void {
+  cache.delete(CacheKeys.user(userId));
+  logger.info('User cache invalidated', { userId });
 }

@@ -22,7 +22,8 @@
     "lint:client": "cd client && npm run lint",
     "lint:server": "cd server && npm run lint",
     "format": "prettier --write \"**/*.{ts,tsx,json,js}\"",
-    "quality": "npm run type-check && npm run lint"
+    "quality": "npm run type-check && npm run lint",
+    "install:hooks": "sh scripts/install-git-hooks.sh"
   },
   "devDependencies": {
     "concurrently": "^9.1.2",

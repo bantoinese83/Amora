@@ -5,6 +5,7 @@
 
 import { userRepository } from '../repositories/userRepository';
 import { logger } from '../utils/logger';
+import { cache, CacheKeys } from '../utils/cache';
 
 export interface SubscriptionStatus {
   isActive: boolean;
@@ -50,6 +51,11 @@ export async function updatePremiumStatus(userId: string, isPremium: boolean): P
   try {
     await userRepository.updatePremiumStatus(userId, isPremium);
     logger.info('Premium status updated', { userId, isPremium });
+
+    // Invalidate caches since user data changed
+    invalidateSubscriptionCache(userId);
+    // Note: User cache will be invalidated when getUser is called next time
+    // or can be explicitly invalidated if needed
   } catch (error) {
     logger.error(
       'Failed to update premium status',
@@ -70,8 +76,18 @@ export async function hasFeatureAccess(userId: string): Promise<boolean> {
 
 /**
  * Get subscription details including payment method and billing date
+ * Cached for 10 minutes since subscription details don't change frequently
  */
 export async function getSubscriptionDetails(userId: string): Promise<SubscriptionStatus | null> {
+  const cacheKey = CacheKeys.subscription(userId);
+
+  // Check cache first
+  const cached = cache.get<SubscriptionStatus>(cacheKey);
+  if (cached) {
+    logger.info('Subscription details retrieved from cache', { userId });
+    return cached;
+  }
+
   try {
     const API_URL =
       import.meta.env.VITE_API_URL || 'https://amora-server-production.up.railway.app';
@@ -88,7 +104,7 @@ export async function getSubscriptionDetails(userId: string): Promise<Subscripti
     }
 
     const data = await response.json();
-    return {
+    const subscriptionStatus: SubscriptionStatus = {
       isActive: data.isActive || false,
       subscriptionId: data.subscriptionId,
       customerId: data.customerId,
@@ -97,6 +113,14 @@ export async function getSubscriptionDetails(userId: string): Promise<Subscripti
       paymentMethod: data.paymentMethod,
       paymentBrand: data.paymentBrand,
     };
+
+    // Cache subscription details (longer TTL since they don't change often)
+    cache.set(cacheKey, subscriptionStatus, {
+      ttl: 10 * 60 * 1000, // 10 minutes
+      persist: false, // Don't persist subscription details
+    });
+
+    return subscriptionStatus;
   } catch (error) {
     logger.error(
       'Error fetching subscription details',
@@ -105,6 +129,14 @@ export async function getSubscriptionDetails(userId: string): Promise<Subscripti
     );
     return null;
   }
+}
+
+/**
+ * Invalidate subscription cache (call after subscription changes)
+ */
+export function invalidateSubscriptionCache(userId: string): void {
+  cache.delete(CacheKeys.subscription(userId));
+  logger.info('Subscription cache invalidated', { userId });
 }
 
 /**

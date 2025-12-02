@@ -35,6 +35,19 @@ export interface SessionAnalysis {
   keyInsight: string;
   actionItem: string;
   encouragement: string;
+  // Enhanced fields for richer analysis
+  themes?: string[]; // Main themes discussed (e.g., ["work stress", "relationships", "self-care"])
+  patterns?: string[]; // Behavioral or emotional patterns identified
+  growthAreas?: string[]; // Areas for personal growth
+  strengths?: string[]; // Personal strengths recognized
+  personalizedInsight?: string; // Deeper, more personalized reflection
+  nextSteps?: string[]; // Concrete next steps beyond the action item
+  emotionalJourney?: string; // Description of emotional progression during session
+  keyMoments?: Array<{
+    moment: string;
+    significance: string;
+  }>; // Notable moments in the conversation
+  reflectionPrompt?: string; // A question for deeper reflection
 }
 
 export interface AudioChunk {

@@ -209,6 +209,7 @@ export const Overlay: React.FC<OverlayProps> = ({ fill, transcripts = [] }) => {
             ...transcriptSpring,
             position: 'relative',
             width: '100%',
+            paddingTop: needsScroll ? '80px' : '0',
           }}
         >
           <a.svg
@@ -217,7 +218,12 @@ export const Overlay: React.FC<OverlayProps> = ({ fill, transcripts = [] }) => {
             xmlns="http://www.w3.org/2000/svg"
             className="w-full"
             preserveAspectRatio="xMinYMin none"
-            style={{ height: 'auto', minHeight: '100%', overflow: 'visible' }}
+            style={{
+              height: 'auto',
+              minHeight: '100%',
+              overflow: 'visible',
+              display: 'block',
+            }}
           >
             {transcripts.map((msg, msgIndex) => {
               const isUser = msg.role === 'user';

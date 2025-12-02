@@ -5,13 +5,24 @@
 
 import { Session, MessageLog, AudioChunk } from '../types';
 import { logger } from '../utils/logger';
+import { cache, CacheKeys } from '../utils/cache';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://amora-server-production.up.railway.app';
 
 /**
  * Get all sessions for a user
+ * Cached for 2 minutes to reduce API calls when opening history modal
  */
 export async function getSessions(userId: string): Promise<Session[]> {
+  const cacheKey = CacheKeys.sessions(userId);
+
+  // Check cache first
+  const cached = cache.get<Session[]>(cacheKey);
+  if (cached) {
+    logger.info('Sessions retrieved from cache', { userId, count: cached.length });
+    return cached;
+  }
+
   try {
     const response = await fetch(`${API_URL}/api/sessions/user/${userId}`, {
       method: 'GET',
@@ -32,8 +43,16 @@ export async function getSessions(userId: string): Promise<Session[]> {
     }
 
     const data = await response.json();
-    logger.info('Sessions loaded', { userId, count: data.sessions?.length || 0 });
-    return data.sessions || [];
+    const sessions = data.sessions || [];
+    logger.info('Sessions loaded', { userId, count: sessions.length });
+
+    // Cache the sessions (shorter TTL since they change more frequently)
+    cache.set(cacheKey, sessions, {
+      ttl: 2 * 60 * 1000, // 2 minutes
+      persist: false, // Don't persist sessions to localStorage (can be large)
+    });
+
+    return sessions;
   } catch (error) {
     logger.error('Get sessions error', { userId }, error instanceof Error ? error : undefined);
     const userMessage =
@@ -46,8 +65,18 @@ export async function getSessions(userId: string): Promise<Session[]> {
 
 /**
  * Get session by ID
+ * Cached for 5 minutes
  */
 export async function getSession(userId: string, sessionId: string): Promise<Session | null> {
+  const cacheKey = CacheKeys.session(userId, sessionId);
+
+  // Check cache first
+  const cached = cache.get<Session>(cacheKey);
+  if (cached) {
+    logger.info('Session retrieved from cache', { userId, sessionId });
+    return cached;
+  }
+
   try {
     const response = await fetch(`${API_URL}/api/sessions/${sessionId}/user/${userId}`, {
       method: 'GET',
@@ -71,7 +100,17 @@ export async function getSession(userId: string, sessionId: string): Promise<Ses
     }
 
     const data = await response.json();
-    return data.session || null;
+    const session = data.session || null;
+
+    // Cache the session if found
+    if (session) {
+      cache.set(cacheKey, session, {
+        ttl: 5 * 60 * 1000, // 5 minutes
+        persist: false, // Don't persist individual sessions (can be large)
+      });
+    }
+
+    return session;
   } catch (error) {
     logger.error(
       'Get session error',
@@ -157,6 +196,18 @@ export async function createSession(
       sessionId: data.session?.id,
       durationSeconds,
     });
+
+    // Invalidate sessions list cache (new session added)
+    cache.delete(CacheKeys.sessions(userId));
+
+    // Cache the new session
+    if (data.session) {
+      cache.set(CacheKeys.session(userId, data.session.id), data.session, {
+        ttl: 5 * 60 * 1000,
+        persist: false,
+      });
+    }
+
     return data.session;
   } catch (error) {
     logger.error(
@@ -202,6 +253,19 @@ export async function updateSession(
 
     const data = await response.json();
     logger.info('Session updated successfully', { userId, sessionId });
+
+    // Invalidate caches
+    cache.delete(CacheKeys.session(userId, sessionId));
+    cache.delete(CacheKeys.sessions(userId)); // Sessions list changed
+
+    // Cache the updated session
+    if (data.session) {
+      cache.set(CacheKeys.session(userId, sessionId), data.session, {
+        ttl: 5 * 60 * 1000,
+        persist: false,
+      });
+    }
+
     return data.session;
   } catch (error) {
     logger.error(
@@ -242,6 +306,11 @@ export async function deleteSession(userId: string, sessionId: string): Promise<
 
     const data = await response.json();
     logger.info('Session deleted successfully', { userId, sessionId });
+
+    // Invalidate caches
+    cache.delete(CacheKeys.session(userId, sessionId));
+    cache.delete(CacheKeys.sessions(userId)); // Sessions list changed
+
     return data.success === true;
   } catch (error) {
     logger.error(
