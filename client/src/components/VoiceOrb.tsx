@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Visualizer } from './Visualizer';
+import { CloudVisualizer } from './CloudVisualizer';
 import { ConnectionStatus } from '../types';
 import { MicIcon } from './common/Icons';
 import { AudioData } from '../hooks/useVoiceClient';
@@ -131,11 +131,11 @@ export const VoiceOrb: React.FC<VoiceOrbProps> = ({
           <div className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin" />
         </div>
 
-        {/* Layer 3: Visualizer (Connected state) */}
+        {/* Layer 3: Cloud Visualizer (Connected state) */}
         <div
-          className={`absolute inset-0 w-full h-full p-2 transition-opacity duration-700 ease-in-out ${isConnected ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+          className={`absolute inset-0 w-full h-full transition-opacity duration-700 ease-in-out ${isConnected ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
         >
-          <Visualizer audioRef={audioRef} isActive={isConnected} />
+          <CloudVisualizer audioRef={audioRef} isActive={isConnected} />
         </div>
       </div>
     </div>
