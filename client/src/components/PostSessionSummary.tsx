@@ -16,6 +16,7 @@ import { MessageBubble } from './common/MessageBubble';
 import { logger } from '../utils/logger';
 import { getSubscriptionLimits } from '../services/subscriptionService';
 import { UpgradePrompt } from './UpgradePrompt';
+import { ActivityRings } from './common/ActivityRings';
 
 export const PostSessionSummary: React.FC = () => {
   const { modals, closeModal, updateSession, authState, sessions } = useApp();
@@ -199,6 +200,15 @@ export const PostSessionSummary: React.FC = () => {
           </div>
         ) : (
           <div className="space-y-3 text-left animate-in fade-in slide-in-from-bottom-4 duration-500">
+            {/* Activity Rings */}
+            <div className="mb-4">
+              <ActivityRings
+                durationSeconds={session.durationSeconds}
+                transcriptLength={session.transcript.length}
+                className="bg-white border border-slate-200"
+              />
+            </div>
+
             {/* Mood & Summary */}
             <div className="space-y-3">
               <Card className="flex flex-col items-center justify-center text-center p-3">
