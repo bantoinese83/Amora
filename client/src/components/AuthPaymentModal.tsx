@@ -6,6 +6,7 @@ import { Card } from './common/Card';
 import { Button } from './common/Button';
 import { PaymentCheckout } from './PaymentCheckout';
 import { ProgressIndicator } from './common/ProgressIndicator';
+import { TherapistIcon, CoachIcon, JournalIcon } from './common/Icons';
 import { checkEmail, signUp, signIn } from '../services/authService';
 import { updatePremiumStatus, getSubscriptionDetails } from '../services/subscriptionService';
 import {
@@ -411,11 +412,20 @@ export const AuthPaymentModal: React.FC = () => {
               A therapist, coach, and journal in one app. Enter your email to get started.
             </p>
             <div className="flex items-center justify-center gap-2 mb-6 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-full w-fit mx-auto">
-              <span className="text-[10px] text-slate-600 font-medium">🛋️ Therapist</span>
+              <div className="flex items-center gap-1">
+                <TherapistIcon className="w-3 h-3 text-slate-600" />
+                <span className="text-[10px] text-slate-600 font-medium">Therapist</span>
+              </div>
               <span className="text-slate-400">•</span>
-              <span className="text-[10px] text-slate-600 font-medium">🎯 Coach</span>
+              <div className="flex items-center gap-1">
+                <CoachIcon className="w-3 h-3 text-slate-600" />
+                <span className="text-[10px] text-slate-600 font-medium">Coach</span>
+              </div>
               <span className="text-slate-400">•</span>
-              <span className="text-[10px] text-slate-600 font-medium">📔 Journal</span>
+              <div className="flex items-center gap-1">
+                <JournalIcon className="w-3 h-3 text-slate-600" />
+                <span className="text-[10px] text-slate-600 font-medium">Journal</span>
+              </div>
             </div>
 
             <form onSubmit={handleEmailSubmit} className="space-y-4">

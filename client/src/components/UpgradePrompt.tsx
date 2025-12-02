@@ -2,6 +2,7 @@ import React from 'react';
 import { useApp } from '../context/AppContext';
 import { Button } from './common/Button';
 import { Card } from './common/Card';
+import { CheckIcon } from './common/Icons';
 import { getSubscriptionLimits } from '../services/subscriptionService';
 
 interface UpgradePromptProps {
@@ -48,23 +49,23 @@ export const UpgradePrompt: React.FC<UpgradePromptProps> = ({
 
         <div className="space-y-2.5 text-sm text-slate-700">
           <div className="flex items-center justify-center gap-2">
-            <span className="text-green-600 text-base">✓</span>
+            <CheckIcon className="w-4 h-4 text-green-600" />
             <span className="font-medium">Unlimited therapy sessions</span>
           </div>
           <div className="flex items-center justify-center gap-2">
-            <span className="text-green-600 text-base">✓</span>
+            <CheckIcon className="w-4 h-4 text-green-600" />
             <span className="font-medium">Extended sessions (up to 1 hour)</span>
           </div>
           <div className="flex items-center justify-center gap-2">
-            <span className="text-green-600 text-base">✓</span>
+            <CheckIcon className="w-4 h-4 text-green-600" />
             <span className="font-medium">Unlimited coaching insights & analysis</span>
           </div>
           <div className="flex items-center justify-center gap-2">
-            <span className="text-green-600 text-base">✓</span>
+            <CheckIcon className="w-4 h-4 text-green-600" />
             <span className="font-medium">Complete journal history & audio playback</span>
           </div>
           <div className="flex items-center justify-center gap-2">
-            <span className="text-green-600 text-base">✓</span>
+            <CheckIcon className="w-4 h-4 text-green-600" />
             <span className="font-medium">Priority support</span>
           </div>
         </div>

@@ -2,6 +2,7 @@ import React from 'react';
 import { MessageLog, ConnectionStatus } from '../types';
 import { useAutoScroll } from '../hooks/useAutoScroll';
 import { MessageBubble } from './common/MessageBubble';
+import { TherapistIcon, CoachIcon, JournalIcon } from './common/Icons';
 
 interface TranscriptViewerProps {
   transcripts: MessageLog[];
@@ -42,11 +43,20 @@ export const TranscriptViewer: React.FC<TranscriptViewerProps> = ({ transcripts,
               ))}
             </div>
             <div className="flex items-center gap-1.5 text-[10px] text-slate-500 mt-2">
-              <span>🛋️ Therapist</span>
+              <div className="flex items-center gap-1">
+                <TherapistIcon className="w-3 h-3" />
+                <span>Therapist</span>
+              </div>
               <span>•</span>
-              <span>🎯 Coach</span>
+              <div className="flex items-center gap-1">
+                <CoachIcon className="w-3 h-3" />
+                <span>Coach</span>
+              </div>
               <span>•</span>
-              <span>📔 Journal</span>
+              <div className="flex items-center gap-1">
+                <JournalIcon className="w-3 h-3" />
+                <span>Journal</span>
+              </div>
             </div>
           </div>
         )}

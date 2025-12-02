@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from './common/Button';
 import { Card } from './common/Card';
-import { CheckCircleIcon } from './common/Icons';
+import { CheckCircleIcon, TherapistIcon, CoachIcon, JournalIcon } from './common/Icons';
 import {
   getStripe,
   createCheckoutSession,
@@ -104,11 +104,20 @@ export const PaymentCheckout: React.FC<PaymentCheckoutProps> = ({
           Get unlimited therapy, coaching & journaling sessions
         </p>
         <div className="flex items-center justify-center gap-2 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-full w-fit mx-auto">
-          <span className="text-[10px] text-slate-600 font-medium">🛋️ Therapist</span>
+          <div className="flex items-center gap-1">
+            <TherapistIcon className="w-3 h-3 text-slate-600" />
+            <span className="text-[10px] text-slate-600 font-medium">Therapist</span>
+          </div>
           <span className="text-slate-400">•</span>
-          <span className="text-[10px] text-slate-600 font-medium">🎯 Coach</span>
+          <div className="flex items-center gap-1">
+            <CoachIcon className="w-3 h-3 text-slate-600" />
+            <span className="text-[10px] text-slate-600 font-medium">Coach</span>
+          </div>
           <span className="text-slate-400">•</span>
-          <span className="text-[10px] text-slate-600 font-medium">📔 Journal</span>
+          <div className="flex items-center gap-1">
+            <JournalIcon className="w-3 h-3 text-slate-600" />
+            <span className="text-[10px] text-slate-600 font-medium">Journal</span>
+          </div>
         </div>
       </div>
 
