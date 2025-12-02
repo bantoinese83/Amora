@@ -77,9 +77,10 @@ export const PaymentCheckout: React.FC<PaymentCheckoutProps> = ({
   };
 
   const features = [
-    'Unlimited voice sessions',
-    'AI-powered insights and analysis',
-    'Knowledge base integration',
+    'Unlimited therapy & coaching sessions',
+    'Extended sessions up to 1 hour',
+    'Unlimited AI insights & analysis',
+    'Complete journal history & audio playback',
     'Priority support',
   ];
 
@@ -98,9 +99,9 @@ export const PaymentCheckout: React.FC<PaymentCheckoutProps> = ({
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
         </div>
-        <h2 className="text-3xl font-bold text-white">Choose Your Plan</h2>
+        <h2 className="text-3xl font-bold text-white">Unlock Full Access</h2>
         <p className="text-slate-400 text-sm leading-relaxed">
-          Unlock unlimited sessions and premium features
+          Get unlimited therapy, coaching & journaling sessions
         </p>
       </div>
 

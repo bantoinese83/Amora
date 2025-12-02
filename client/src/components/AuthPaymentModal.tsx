@@ -363,7 +363,7 @@ export const AuthPaymentModal: React.FC = () => {
             </div>
             <h2 className="text-2xl font-bold text-white mb-2">Welcome to Amora</h2>
             <p className="text-slate-400 mb-6">
-              Enter your email to get started with secure voice sessions.
+              A therapist, coach, and journal in one app. Enter your email to get started.
             </p>
 
             <form onSubmit={handleEmailSubmit} className="space-y-4">

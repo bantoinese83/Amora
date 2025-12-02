@@ -102,8 +102,8 @@ export const SessionHistory: React.FC = () => {
                     />
                   </svg>
                 }
-                title="No conversations yet"
-                description="Start your first voice session to see your conversation history here. Each session will be saved automatically."
+                title="Your journal is empty"
+                description="Start your first therapy, coaching, or journaling session to see your history here. Every conversation is automatically saved."
                 action={
                   !modals.history
                     ? undefined

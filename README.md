@@ -1,12 +1,12 @@
-# 🎙️ Amora - Voice AI Companion
+# 🎙️ Amora
 
 <div align="center">
 
-![Amora Logo](https://img.shields.io/badge/Amora-Voice%20AI%20Companion-purple?style=for-the-badge&logo=google-assistant)
+![Amora Logo](https://img.shields.io/badge/Amora-Therapist%2C%20Coach%20%26%20Journal-purple?style=for-the-badge&logo=google-assistant)
 
-**Intelligent Voice-Powered Wellness Companion**
+**A Therapist, Coach, and Journal in One App**
 
-*Real-time conversational AI for daily reflection, emotional processing, and personal growth*
+*Your voice-powered AI companion for emotional support, personal growth, and daily reflection*
 
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-amora--mu.vercel.app-blue?style=flat-square)](https://amora-mu.vercel.app/)
 [![License](https://img.shields.io/badge/license-Private-red.svg)](LICENSE)
@@ -44,7 +44,12 @@
 
 ## 🎯 Overview
 
-Amora is a sophisticated voice-powered AI companion application designed to facilitate meaningful daily reflection sessions. Built with modern web technologies, it leverages Google's Gemini Live API to provide natural, real-time voice conversations with intelligent analysis and personalized insights.
+Amora combines the best of therapy, coaching, and journaling into one powerful voice-powered app. Whether you need emotional support, guidance on personal growth, or a space to process your thoughts, Amora is there 24/7. Built with modern web technologies, it leverages Google's Gemini Live API to provide natural, real-time voice conversations with intelligent analysis and personalized insights.
+
+**Three-in-One Value:**
+- 🛋️ **Therapist**: Process emotions, gain insights, and work through challenges with empathetic AI support
+- 🎯 **Coach**: Get actionable guidance, set goals, and stay accountable with personalized coaching
+- 📔 **Journal**: Capture your thoughts, track your journey, and review your growth over time
 
 ### Key Highlights
 
@@ -1307,7 +1312,9 @@ This is a private project. All rights reserved.
 
 <div align="center">
 
-**Built with modern web technologies and AI-powered intelligence**
+**A Therapist, Coach, and Journal in One App**
+
+Built with modern web technologies and AI-powered intelligence
 
 React • TypeScript • Google Gemini Live API • Stripe • Neon PostgreSQL
 

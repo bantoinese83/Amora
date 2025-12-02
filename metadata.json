@@ -1,5 +1,5 @@
 {
-  "name": "Amora - Voice AI",
-  "description": "A real-time, voice-first AI companion powered by Gemini Live API, featuring low-latency audio streaming and dynamic conversation.",
+  "name": "Amora",
+  "description": "A therapist, coach, and journal in one app. Your voice-powered AI companion for emotional support, personal growth, and daily reflection.",
   "requestFramePermissions": ["microphone"]
 }

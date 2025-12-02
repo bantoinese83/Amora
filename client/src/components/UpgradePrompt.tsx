@@ -41,14 +41,15 @@ export const UpgradePrompt: React.FC<UpgradePromptProps> = ({
     <Card className="bg-gradient-to-r from-amora-900/50 to-pink-900/50 border-amora-500/50">
       <div className="text-center space-y-4">
         <div>
-          <h3 className="text-lg font-bold text-white mb-2">Unlock Premium Features</h3>
+          <h3 className="text-lg font-bold text-white mb-1">Unlock Full Access</h3>
+          <p className="text-xs text-amora-300 mb-2 font-medium">Get the complete therapist, coach & journal experience</p>
           <p className="text-slate-300 text-sm">{getMessage()}</p>
         </div>
 
         <div className="space-y-2.5 text-sm text-slate-300">
           <div className="flex items-center justify-center gap-2">
             <span className="text-green-400 text-base">✓</span>
-            <span className="font-medium">Unlimited voice sessions</span>
+            <span className="font-medium">Unlimited therapy sessions</span>
           </div>
           <div className="flex items-center justify-center gap-2">
             <span className="text-green-400 text-base">✓</span>
@@ -56,11 +57,11 @@ export const UpgradePrompt: React.FC<UpgradePromptProps> = ({
           </div>
           <div className="flex items-center justify-center gap-2">
             <span className="text-green-400 text-base">✓</span>
-            <span className="font-medium">Unlimited AI insights & analysis</span>
+            <span className="font-medium">Unlimited coaching insights & analysis</span>
           </div>
           <div className="flex items-center justify-center gap-2">
             <span className="text-green-400 text-base">✓</span>
-            <span className="font-medium">Audio playback & full history</span>
+            <span className="font-medium">Complete journal history & audio playback</span>
           </div>
           <div className="flex items-center justify-center gap-2">
             <span className="text-green-400 text-base">✓</span>

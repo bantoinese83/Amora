@@ -14,7 +14,7 @@ const STEPS: Step[] = [
   {
     targetId: null,
     title: 'Welcome to Amora',
-    content: "Your AI companion for daily reflection and clarity. Let's take a quick tour.",
+    content: "A therapist, coach, and journal in one app. Get emotional support, actionable guidance, and track your growth—all through natural voice conversations.",
   },
   {
     targetId: 'onboarding-orb',

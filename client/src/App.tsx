@@ -116,7 +116,7 @@ export default function App() {
           />
           {!authState.isAuthenticated && (
             <p className="text-sm text-slate-500 text-center animate-in fade-in">
-              Please sign in to start a voice session
+              Sign in to start your therapy, coaching, or journaling session
             </p>
           )}
         </div>
