@@ -10,9 +10,16 @@ import { logger } from '../utils/logger';
 
 const router = Router();
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2025-02-24.acacia',
-});
+// Lazy initialization of Stripe to avoid errors if key is missing
+function getStripe(): Stripe {
+  const apiKey = process.env.STRIPE_SECRET_KEY;
+  if (!apiKey) {
+    throw new Error('Stripe API key is not configured. Please set STRIPE_SECRET_KEY in your environment variables.');
+  }
+  return new Stripe(apiKey, {
+    apiVersion: '2025-02-24.acacia',
+  });
+}
 
 router.post('/create-portal-session', async (req: Request, res: Response) => {
   try {
@@ -23,6 +30,9 @@ router.post('/create-portal-session', async (req: Request, res: Response) => {
     if (!returnUrl) {
       return res.status(400).json({ error: 'Missing required field: returnUrl' });
     }
+
+    // Initialize Stripe
+    const stripe = getStripe();
 
     let customer: Stripe.Customer | null = null;
     let stripeCustomerId: string | null = null;
@@ -100,11 +110,17 @@ router.post('/create-portal-session', async (req: Request, res: Response) => {
       return_url: returnUrl,
     });
 
-    logger.info('Portal session created successfully', { customerId: customer.id, userId });
+    const { userId: reqUserId, customerEmail: reqCustomerEmail } = req.body as StripePortalSessionParams & { userId?: string };
+    logger.info('Portal session created successfully', { customerId: customer.id, userId: reqUserId });
     res.json({ url: session.url });
   } catch (error) {
-    logger.error('Error creating portal session', { userId, customerEmail }, error instanceof Error ? error : undefined);
-    res.status(500).json({ error: "We couldn't open subscription management. Please try again." });
+    const { userId: reqUserId, customerEmail: reqCustomerEmail } = req.body as StripePortalSessionParams & { userId?: string };
+    logger.error('Error creating portal session', { userId: reqUserId, customerEmail: reqCustomerEmail }, error instanceof Error ? error : undefined);
+    if (error instanceof Error && error.message.includes('Stripe API key')) {
+      res.status(500).json({ error: "Subscription management is not configured. Please contact support." });
+    } else {
+      res.status(500).json({ error: "We couldn't open subscription management. Please try again." });
+    }
   }
 });
 

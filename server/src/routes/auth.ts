@@ -24,7 +24,8 @@ router.post('/check-email', async (req: Request, res: Response) => {
     const exists = await userRepository.emailExists(email);
     res.json({ exists });
   } catch (error) {
-    logger.error('Error checking email', { email }, error instanceof Error ? error : undefined);
+    const email = (req.body as { email?: string })?.email;
+    logger.error('Error checking email', { email: email || 'unknown' }, error instanceof Error ? error : undefined);
     res.status(500).json({ error: "We couldn't verify your email. Please try again." });
   }
 });
@@ -68,10 +69,11 @@ router.post('/signup', async (req: Request, res: Response) => {
     // Get user with preferences
     const userWithPrefs = await userRepository.getUserWithPreferences(user.id);
 
-    logger.info('User signed up successfully', { userId: user.id, email });
+    logger.info('User signed up successfully', { userId: user.id, email: email });
     res.json({ user: userWithPrefs || user });
   } catch (error) {
-    logger.error('Error signing up', { email }, error instanceof Error ? error : undefined);
+    const emailFromBody = (req.body as { email?: string })?.email;
+    logger.error('Error signing up', { email: emailFromBody || 'unknown' }, error instanceof Error ? error : undefined);
     res.status(500).json({ error: "We couldn't create your account. Please try again." });
   }
 });
@@ -106,10 +108,11 @@ router.post('/signin', async (req: Request, res: Response) => {
     // Get user with preferences
     const userWithPrefs = await userRepository.getUserWithPreferences(user.id);
 
-    logger.info('User signed in successfully', { userId: user.id, email });
+    logger.info('User signed in successfully', { userId: user.id, email: email });
     res.json({ user: userWithPrefs || user });
   } catch (error) {
-    logger.error('Error signing in', { email }, error instanceof Error ? error : undefined);
+    const emailFromBody = (req.body as { email?: string })?.email;
+    logger.error('Error signing in', { email: emailFromBody || 'unknown' }, error instanceof Error ? error : undefined);
     res.status(500).json({ error: "We couldn't sign you in. Please check your email and PIN and try again." });
   }
 });
@@ -133,7 +136,8 @@ router.get('/user/:userId', async (req: Request, res: Response) => {
 
     res.json({ user });
   } catch (error) {
-    logger.error('Error getting user', { userId }, error instanceof Error ? error : undefined);
+    const userId = req.params.userId;
+    logger.error('Error getting user', { userId: userId || 'unknown' }, error instanceof Error ? error : undefined);
     res.status(500).json({ error: "We couldn't load your account information. Please try again." });
   }
 });

@@ -10,9 +10,16 @@ import { logger } from '../utils/logger';
 
 const router = Router();
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2025-02-24.acacia',
-});
+// Lazy initialization of Stripe to avoid errors if key is missing
+function getStripe(): Stripe {
+  const apiKey = process.env.STRIPE_SECRET_KEY;
+  if (!apiKey) {
+    throw new Error('Stripe API key is not configured. Please set STRIPE_SECRET_KEY in your environment variables.');
+  }
+  return new Stripe(apiKey, {
+    apiVersion: '2025-02-24.acacia',
+  });
+}
 
 router.post('/create-checkout-session', async (req: Request, res: Response) => {
   try {
@@ -24,6 +31,9 @@ router.post('/create-checkout-session', async (req: Request, res: Response) => {
         error: 'Missing required fields: priceId, successUrl, cancelUrl',
       });
     }
+
+    // Initialize Stripe
+    const stripe = getStripe();
 
     // If user ID is provided, try to find or create Stripe customer
     let customerId: string | undefined;
@@ -92,10 +102,15 @@ router.post('/create-checkout-session', async (req: Request, res: Response) => {
       sessionId: session.id,
       url: session.url,
     });
-    logger.info('Checkout session created successfully', { sessionId: session.id, userId, priceId });
+    logger.info('Checkout session created successfully', { sessionId: session.id, userId: userId, priceId: priceId });
   } catch (error) {
-    logger.error('Error creating checkout session', { userId, priceId }, error instanceof Error ? error : undefined);
-    res.status(500).json({ error: "We couldn't start the payment process. Please try again." });
+    const { userId: reqUserId, priceId: reqPriceId } = req.body as StripeCheckoutSessionParams & { userId?: string };
+    logger.error('Error creating checkout session', { userId: reqUserId, priceId: reqPriceId }, error instanceof Error ? error : undefined);
+    if (error instanceof Error && error.message.includes('Stripe API key')) {
+      res.status(500).json({ error: "Payment processing is not configured. Please contact support." });
+    } else {
+      res.status(500).json({ error: "We couldn't start the payment process. Please try again." });
+    }
   }
 });
 

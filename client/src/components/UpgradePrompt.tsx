@@ -5,7 +5,7 @@ import { Card } from './common/Card';
 import { getSubscriptionLimits } from '../services/subscriptionService';
 
 interface UpgradePromptProps {
-  reason?: 'session_limit' | 'duration_limit' | 'feature_locked';
+  reason?: 'session_limit' | 'duration_limit' | 'analysis_limit' | 'feature_locked';
   currentCount?: number;
   maxCount?: number;
 }
@@ -30,6 +30,8 @@ export const UpgradePrompt: React.FC<UpgradePromptProps> = ({
         return `You've reached your session limit (${maxCount || limits.maxSessions} sessions). Upgrade to premium for unlimited sessions.`;
       case 'duration_limit':
         return `Session duration limit reached (${limits.maxSessionDuration / 60} minutes). Upgrade to premium for longer sessions.`;
+      case 'analysis_limit':
+        return `You've used your free AI analysis (${maxCount || limits.maxAnalyses} analysis). Upgrade to premium for unlimited insights.`;
       default:
         return 'Upgrade to premium to unlock all features.';
     }

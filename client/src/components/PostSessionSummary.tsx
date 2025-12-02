@@ -14,10 +14,14 @@ import { getIconComponent } from '../utils/iconUtils';
 import { AudioPlayer } from './common/AudioPlayer';
 import { MessageBubble } from './common/MessageBubble';
 import { logger } from '../utils/logger';
+import { getSubscriptionLimits } from '../services/subscriptionService';
+import { UpgradePrompt } from './UpgradePrompt';
 
 export const PostSessionSummary: React.FC = () => {
-  const { modals, closeModal, updateSession } = useApp();
+  const { modals, closeModal, updateSession, authState, sessions } = useApp();
   const session = modals.summary;
+  const isPremium = authState.user?.isPremium || false;
+  const limits = getSubscriptionLimits(isPremium);
 
   const [analysis, setAnalysis] = useState<SessionAnalysis | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -45,7 +49,20 @@ export const PostSessionSummary: React.FC = () => {
       return;
     }
 
-    // 3. Generate Analysis
+    // 3. Check analysis limit for free users
+    if (!isPremium) {
+      // Count how many sessions already have analysis
+      const analysisCount = sessions.filter(s => s.analysis !== null && s.analysis !== undefined).length;
+      
+      if (analysisCount >= limits.maxAnalyses) {
+        // Free user has reached analysis limit
+        setIsLoading(false);
+        setAnalysis(null);
+        return;
+      }
+    }
+
+    // 4. Generate Analysis
     const generate = async () => {
       // Prevent double-firing
       if (generationRef.current === session.id) return;
@@ -124,6 +141,25 @@ export const PostSessionSummary: React.FC = () => {
             <Skeleton variant="rectangular" height={96} className="w-full" />
             <Skeleton variant="rectangular" height={96} className="w-full" />
             <Skeleton variant="rectangular" height={64} className="w-full" />
+          </div>
+        ) : !isPremium && !session.analysis && !analysis && (() => {
+          const analysisCount = sessions.filter(s => s.analysis !== null && s.analysis !== undefined).length;
+          return analysisCount >= limits.maxAnalyses;
+        })() ? (
+          <div className="space-y-4 py-8 animate-in fade-in">
+            <UpgradePrompt
+              reason="analysis_limit"
+              currentCount={sessions.filter(s => s.analysis !== null && s.analysis !== undefined).length}
+              maxCount={limits.maxAnalyses}
+            />
+          </div>
+        ) : !analysis ? (
+          <div className="space-y-4 py-8 animate-in fade-in text-center">
+            <Card className="p-4 bg-slate-800/40">
+              <p className="text-slate-300 text-sm">
+                Session completed. View your conversation transcript below.
+              </p>
+            </Card>
           </div>
         ) : (
           <div className="space-y-3 text-left animate-in fade-in slide-in-from-bottom-4 duration-500">

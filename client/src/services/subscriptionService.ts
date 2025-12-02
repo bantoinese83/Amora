@@ -72,12 +72,14 @@ export async function hasFeatureAccess(userId: string): Promise<boolean> {
 export function getSubscriptionLimits(isPremium: boolean): {
   maxSessions: number;
   maxSessionDuration: number; // in seconds
+  maxAnalyses: number;
   features: string[];
 } {
   if (isPremium) {
     return {
       maxSessions: Infinity,
       maxSessionDuration: 3600, // 1 hour
+      maxAnalyses: Infinity,
       features: [
         'unlimited_sessions',
         'premium_insights',
@@ -91,7 +93,8 @@ export function getSubscriptionLimits(isPremium: boolean): {
   // Free tier limits
   return {
     maxSessions: 3, // Limited sessions for free users
-    maxSessionDuration: 600, // 10 minutes
+    maxSessionDuration: 300, // 5 minutes
+    maxAnalyses: 1, // 1 AI analysis for free users
     features: ['basic_sessions'],
   };
 }

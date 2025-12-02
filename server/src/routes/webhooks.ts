@@ -10,9 +10,16 @@ import { logger } from '../utils/logger';
 
 const router = Router();
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2025-02-24.acacia',
-});
+// Lazy initialization of Stripe to avoid errors if key is missing
+function getStripe(): Stripe {
+  const apiKey = process.env.STRIPE_SECRET_KEY;
+  if (!apiKey) {
+    throw new Error('Stripe API key is not configured. Please set STRIPE_SECRET_KEY in your environment variables.');
+  }
+  return new Stripe(apiKey, {
+    apiVersion: '2025-02-24.acacia',
+  });
+}
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || '';
 
@@ -30,7 +37,8 @@ router.post(
     let event: Stripe.Event;
 
     try {
-      // Verify webhook signature
+      // Initialize Stripe and verify webhook signature
+      const stripe = getStripe();
       event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
@@ -110,6 +118,8 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     return;
   }
 
+  // Initialize Stripe
+  const stripe = getStripe();
   const subscription = await stripe.subscriptions.retrieve(subscriptionId);
   if (subscription.status === 'active' || subscription.status === 'trialing') {
     // Update user premium status and Stripe IDs
@@ -145,6 +155,8 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
     return;
   }
 
+  // Initialize Stripe
+  const stripe = getStripe();
   const customer = (await stripe.customers.retrieve(customerId)) as Stripe.Customer;
   const customerEmail = customer.email;
   const userId = customer.metadata?.user_id;
@@ -181,6 +193,8 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
     return;
   }
 
+  // Initialize Stripe
+  const stripe = getStripe();
   const customer = (await stripe.customers.retrieve(customerId)) as Stripe.Customer;
   const customerEmail = customer.email;
   const userId = customer.metadata?.user_id;
@@ -217,6 +231,8 @@ async function handleInvoicePaid(invoice: Stripe.Invoice) {
     return;
   }
 
+  // Initialize Stripe
+  const stripe = getStripe();
   const customer = (await stripe.customers.retrieve(customerId)) as Stripe.Customer;
   const customerEmail = customer.email;
   const userId = customer.metadata?.user_id;
@@ -266,6 +282,8 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
     typeof invoice.subscription === 'string' ? invoice.subscription : invoice.subscription?.id;
 
   if (subscriptionId) {
+    // Initialize Stripe
+    const stripe = getStripe();
     const subscription = await stripe.subscriptions.retrieve(subscriptionId);
     const isActive = subscription.status === 'active' || subscription.status === 'trialing';
 
