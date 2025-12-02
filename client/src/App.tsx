@@ -115,6 +115,7 @@ export default function App() {
           isActive={isConnected}
           onClick={authState.isAuthenticated ? toggleSession : undefined}
           setBg={setBg}
+          transcripts={transcripts}
         />
       </main>
 

@@ -36,3 +36,41 @@ export function calculateBassEnergy(data: Uint8Array): number {
   }
   return bassEnergy / bassBins / 255; // Normalize 0-1
 }
+
+export function calculateMidEnergy(data: Uint8Array): number {
+  if (data.length === 0) return 0;
+
+  // Calculate "Mid" energy (mid frequency range)
+  // Bins 5-20 range approx 450Hz-1.8kHz (typical speech range)
+  const startBin = 5;
+  const endBin = Math.min(data.length, 20);
+  let midEnergy = 0;
+  let count = 0;
+  for (let i = startBin; i < endBin; i++) {
+    const val = data[i];
+    if (val !== undefined) {
+      midEnergy += val;
+      count++;
+    }
+  }
+  return count > 0 ? midEnergy / count / 255 : 0; // Normalize 0-1
+}
+
+export function calculateHighEnergy(data: Uint8Array): number {
+  if (data.length === 0) return 0;
+
+  // Calculate "High" energy (high frequency range)
+  // Bins 21+ range approx 1.8kHz+ (sharp sounds, consonants)
+  const startBin = 21;
+  const endBin = Math.min(data.length, 64);
+  let highEnergy = 0;
+  let count = 0;
+  for (let i = startBin; i < endBin; i++) {
+    const val = data[i];
+    if (val !== undefined) {
+      highEnergy += val;
+      count++;
+    }
+  }
+  return count > 0 ? highEnergy / count / 255 : 0; // Normalize 0-1
+}
