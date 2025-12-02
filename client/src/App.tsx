@@ -130,8 +130,19 @@ export default function App() {
           onToggleMute={toggleMute}
           onDisconnect={toggleSession}
         />
-        <div className="text-center mt-4 text-xs text-slate-600 opacity-0 hover:opacity-100 transition-opacity select-none">
-          Shortcuts: Space to Mute • Esc to Disconnect
+        <div className="text-center mt-4 space-y-2">
+          <div className="text-xs text-slate-600 opacity-0 hover:opacity-100 transition-opacity select-none">
+            Shortcuts: Space to Mute • Esc to Disconnect
+          </div>
+          {authState.isAuthenticated && (
+            <div className="flex items-center justify-center gap-1.5 text-[10px] text-slate-700 opacity-60">
+              <span className="font-medium">Therapist</span>
+              <span>•</span>
+              <span className="font-medium">Coach</span>
+              <span>•</span>
+              <span className="font-medium">Journal</span>
+            </div>
+          )}
         </div>
       </footer>
 

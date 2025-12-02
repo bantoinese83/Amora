@@ -45,13 +45,18 @@ export const Header: React.FC<HeaderProps> = ({
           <SettingsIcon />
         </button>
 
-        <div className="flex items-center gap-2 select-none">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amora-500 to-pink-500 flex items-center justify-center font-bold text-white text-lg">
+        <div className="flex items-center gap-3 select-none group">
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amora-500 to-pink-500 flex items-center justify-center font-bold text-white text-lg shadow-lg shadow-amora-500/30">
             A
           </div>
-          <span className="font-semibold text-xl tracking-tight text-white hidden sm:block">
-            Amora
-          </span>
+          <div className="hidden sm:block">
+            <span className="font-semibold text-xl tracking-tight text-white block">
+              Amora
+            </span>
+            <span className="text-[10px] text-slate-400 font-medium tracking-wide uppercase">
+              Therapist • Coach • Journal
+            </span>
+          </div>
         </div>
       </div>
 

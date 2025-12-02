@@ -100,9 +100,16 @@ export const PaymentCheckout: React.FC<PaymentCheckoutProps> = ({
           </svg>
         </div>
         <h2 className="text-3xl font-bold text-white">Unlock Full Access</h2>
-        <p className="text-slate-400 text-sm leading-relaxed">
+        <p className="text-slate-400 text-sm leading-relaxed mb-2">
           Get unlimited therapy, coaching & journaling sessions
         </p>
+        <div className="flex items-center justify-center gap-2 px-3 py-1.5 bg-slate-800/40 border border-slate-700 rounded-full w-fit mx-auto">
+          <span className="text-[10px] text-slate-300 font-medium">🛋️ Therapist</span>
+          <span className="text-slate-600">•</span>
+          <span className="text-[10px] text-slate-300 font-medium">🎯 Coach</span>
+          <span className="text-slate-600">•</span>
+          <span className="text-[10px] text-slate-300 font-medium">📔 Journal</span>
+        </div>
       </div>
 
       {/* Plan Selection */}

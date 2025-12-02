@@ -149,10 +149,20 @@ export const PostSessionSummary: React.FC = () => {
                 ? 'Reflecting on your conversation...'
                 : analysis?.title || 'All done!'}
           </h2>
-          <p className="text-slate-400 text-xs mt-1">
-            {formatDuration(session.durationSeconds)} • {session.transcript.length}{' '}
-            {session.transcript.length === 1 ? 'exchange' : 'exchanges'}
-          </p>
+          <div className="flex items-center justify-center gap-2 mt-2">
+            <p className="text-slate-400 text-xs">
+              {formatDuration(session.durationSeconds)} • {session.transcript.length}{' '}
+              {session.transcript.length === 1 ? 'exchange' : 'exchanges'}
+            </p>
+            <span className="text-slate-600">•</span>
+            <div className="flex items-center gap-1.5 px-2 py-0.5 bg-slate-800/50 border border-slate-700 rounded-full">
+              <span className="text-[10px] text-slate-400 font-medium">Therapist</span>
+              <span className="text-slate-600">•</span>
+              <span className="text-[10px] text-slate-400 font-medium">Coach</span>
+              <span className="text-slate-600">•</span>
+              <span className="text-[10px] text-slate-400 font-medium">Journal</span>
+            </div>
+          </div>
         </div>
 
         {isLoading ? (

@@ -10,8 +10,13 @@ export const SettingsModal: React.FC = () => {
 
   return (
     <Modal isOpen={modals.settings} onClose={() => closeModal('settings')}>
-      <h2 className="text-2xl font-bold text-white mb-2">Voice Settings</h2>
-      <p className="text-slate-400 mb-6">Choose the voice that feels most comfortable for you.</p>
+      <div className="mb-6">
+        <h2 className="text-2xl font-bold text-white mb-2">Voice Settings</h2>
+        <p className="text-slate-400 mb-3">Choose the voice that feels most comfortable for you.</p>
+        <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-800/40 border border-slate-700 rounded-full w-fit">
+          <span className="text-[10px] text-slate-400 font-medium">Therapist • Coach • Journal</span>
+        </div>
+      </div>
 
       <div className="space-y-3">
         {VOICES.map(voice => {

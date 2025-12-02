@@ -30,8 +30,8 @@ export const TranscriptViewer: React.FC<TranscriptViewerProps> = ({ transcripts,
       >
         {transcripts.length === 0 && isConnected && (
           <div className="h-full flex flex-col items-center justify-center animate-in fade-in duration-700">
-            <p className="text-slate-500 mb-4 text-sm font-medium">Try saying...</p>
-            <div className="flex flex-wrap justify-center gap-2 max-w-md">
+            <p className="text-slate-500 mb-4 text-sm font-medium">Start your conversation...</p>
+            <div className="flex flex-wrap justify-center gap-2 max-w-md mb-3">
               {STARTERS.map((text, i) => (
                 <div
                   key={i}
@@ -40,6 +40,13 @@ export const TranscriptViewer: React.FC<TranscriptViewerProps> = ({ transcripts,
                   "{text}"
                 </div>
               ))}
+            </div>
+            <div className="flex items-center gap-1.5 text-[10px] text-slate-600 mt-2">
+              <span>🛋️ Therapist</span>
+              <span>•</span>
+              <span>🎯 Coach</span>
+              <span>•</span>
+              <span>📔 Journal</span>
             </div>
           </div>
         )}
