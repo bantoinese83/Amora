@@ -175,7 +175,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({ audioChunks, className
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   return (
-    <div className={`bg-slate-800/50 rounded-xl p-3 ${className}`}>
+    <div className={`bg-white border border-slate-200 rounded-xl p-3 ${className}`}>
       <div className="flex items-center gap-3">
         <button
           onClick={handleToggle}
@@ -193,11 +193,11 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({ audioChunks, className
         </button>
 
         <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between text-xs text-slate-400 mb-1.5">
+          <div className="flex items-center justify-between text-xs text-slate-600 mb-1.5">
             <span className="text-[10px]">{formatTime(currentTime)}</span>
             <span className="text-[10px]">{formatTime(duration)}</span>
           </div>
-          <div className="w-full h-1.5 bg-slate-700 rounded-full overflow-hidden">
+          <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
             <div
               className="h-full bg-amora-500 transition-all duration-100"
               style={{ width: `${progress}%` }}

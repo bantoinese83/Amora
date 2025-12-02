@@ -30,18 +30,18 @@ export const TranscriptViewer: React.FC<TranscriptViewerProps> = ({ transcripts,
       >
         {transcripts.length === 0 && isConnected && (
           <div className="h-full flex flex-col items-center justify-center animate-in fade-in duration-700">
-            <p className="text-slate-500 mb-4 text-sm font-medium">Start your conversation...</p>
+            <p className="text-slate-600 mb-4 text-sm font-medium">Start your conversation...</p>
             <div className="flex flex-wrap justify-center gap-2 max-w-md mb-3">
               {STARTERS.map((text, i) => (
                 <div
                   key={i}
-                  className="bg-slate-800/50 border border-slate-700 px-3 py-1.5 rounded-full text-xs text-slate-300 pointer-events-none select-none"
+                  className="bg-white/80 border border-slate-200 px-3 py-1.5 rounded-full text-xs text-slate-700 pointer-events-none select-none backdrop-blur-sm"
                 >
                   "{text}"
                 </div>
               ))}
             </div>
-            <div className="flex items-center gap-1.5 text-[10px] text-slate-600 mt-2">
+            <div className="flex items-center gap-1.5 text-[10px] text-slate-500 mt-2">
               <span>🛋️ Therapist</span>
               <span>•</span>
               <span>🎯 Coach</span>
@@ -52,7 +52,7 @@ export const TranscriptViewer: React.FC<TranscriptViewerProps> = ({ transcripts,
         )}
 
         {transcripts.length === 0 && status === ConnectionStatus.CONNECTING && (
-          <p className="text-center text-slate-500 animate-pulse mt-20">Getting ready...</p>
+          <p className="text-center text-slate-600 animate-pulse mt-20">Getting ready...</p>
         )}
 
         {transcripts.map(msg => (

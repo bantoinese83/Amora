@@ -27,7 +27,7 @@ export const ProgressIndicator: React.FC<ProgressIndicatorProps> = ({
                     ? 'bg-amora-500 text-white'
                     : isActive
                       ? 'bg-amora-500 text-white ring-4 ring-amora-500/20'
-                      : 'bg-slate-800 text-slate-500 border-2 border-slate-700'
+                      : 'bg-white text-slate-400 border-2 border-slate-300'
                 }`}
               >
                 {isCompleted ? (
@@ -45,7 +45,7 @@ export const ProgressIndicator: React.FC<ProgressIndicatorProps> = ({
               </div>
               <span
                 className={`mt-2 text-xs font-medium transition-colors ${
-                  isActive ? 'text-amora-300' : isCompleted ? 'text-slate-400' : 'text-slate-600'
+                  isActive ? 'text-amora-600' : isCompleted ? 'text-slate-500' : 'text-slate-400'
                 }`}
               >
                 {step}
@@ -54,7 +54,7 @@ export const ProgressIndicator: React.FC<ProgressIndicatorProps> = ({
             {index < steps.length - 1 && (
               <div
                 className={`flex-1 h-0.5 mx-2 transition-colors duration-300 ${
-                  isCompleted ? 'bg-amora-500' : 'bg-slate-800'
+                  isCompleted ? 'bg-amora-500' : 'bg-slate-200'
                 }`}
               />
             )}

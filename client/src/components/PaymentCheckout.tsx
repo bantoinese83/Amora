@@ -99,16 +99,16 @@ export const PaymentCheckout: React.FC<PaymentCheckoutProps> = ({
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
         </div>
-        <h2 className="text-3xl font-bold text-white">Unlock Full Access</h2>
-        <p className="text-slate-400 text-sm leading-relaxed mb-2">
+        <h2 className="text-3xl font-bold text-slate-900">Unlock Full Access</h2>
+        <p className="text-slate-600 text-sm leading-relaxed mb-2">
           Get unlimited therapy, coaching & journaling sessions
         </p>
-        <div className="flex items-center justify-center gap-2 px-3 py-1.5 bg-slate-800/50 border border-slate-700 rounded-full w-fit mx-auto">
-          <span className="text-[10px] text-slate-300 font-medium">🛋️ Therapist</span>
-          <span className="text-slate-600">•</span>
-          <span className="text-[10px] text-slate-300 font-medium">🎯 Coach</span>
-          <span className="text-slate-600">•</span>
-          <span className="text-[10px] text-slate-300 font-medium">📔 Journal</span>
+        <div className="flex items-center justify-center gap-2 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-full w-fit mx-auto">
+          <span className="text-[10px] text-slate-600 font-medium">🛋️ Therapist</span>
+          <span className="text-slate-400">•</span>
+          <span className="text-[10px] text-slate-600 font-medium">🎯 Coach</span>
+          <span className="text-slate-400">•</span>
+          <span className="text-[10px] text-slate-600 font-medium">📔 Journal</span>
         </div>
       </div>
 
@@ -120,15 +120,15 @@ export const PaymentCheckout: React.FC<PaymentCheckoutProps> = ({
           disabled={isLoading}
           className={`relative p-5 rounded-xl border-2 transition-all duration-300 text-left ${
             selectedPlan === 'monthly'
-              ? 'border-amora-500 bg-gradient-to-br from-amora-900/30 to-amora-800/20 shadow-lg shadow-amora-500/20 scale-105'
-              : 'border-slate-700 bg-slate-800/50 hover:border-slate-600 hover:bg-slate-800/60'
+              ? 'border-amora-500 bg-amora-50 shadow-lg shadow-amora-500/20 scale-105'
+              : 'border-slate-300 bg-white hover:border-slate-400 hover:bg-slate-50'
           } ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
         >
           <div className="space-y-2">
             <div className="flex items-baseline gap-1">
-              <span className="text-3xl font-bold text-white">{plans.monthly.price}</span>
+              <span className="text-3xl font-bold text-slate-900">{plans.monthly.price}</span>
             </div>
-            <p className="text-sm text-slate-400">{plans.monthly.period}</p>
+            <p className="text-sm text-slate-600">{plans.monthly.period}</p>
           </div>
           {selectedPlan === 'monthly' && (
             <div className="absolute top-3 right-3">
@@ -145,24 +145,24 @@ export const PaymentCheckout: React.FC<PaymentCheckoutProps> = ({
           disabled={isLoading}
           className={`relative p-5 rounded-xl border-2 transition-all duration-300 text-left ${
             selectedPlan === 'yearly'
-              ? 'border-amora-500 bg-gradient-to-br from-amora-900/30 to-amora-800/20 shadow-lg shadow-amora-500/20 scale-105'
-              : 'border-slate-700 bg-slate-800/50 hover:border-slate-600 hover:bg-slate-800/60'
+              ? 'border-amora-500 bg-amora-50 shadow-lg shadow-amora-500/20 scale-105'
+              : 'border-slate-300 bg-white hover:border-slate-400 hover:bg-slate-50'
           } ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
         >
           {plans.yearly.savings && (
             <div className="absolute -top-2 -right-2">
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-500/20 text-green-400 border border-green-500/30">
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-50 text-green-700 border border-green-200">
                 {plans.yearly.savings}
               </span>
             </div>
           )}
           <div className="space-y-2">
             <div className="flex items-baseline gap-1">
-              <span className="text-3xl font-bold text-white">{plans.yearly.price}</span>
+              <span className="text-3xl font-bold text-slate-900">{plans.yearly.price}</span>
             </div>
-            <p className="text-sm text-slate-400">{plans.yearly.period}</p>
+            <p className="text-sm text-slate-600">{plans.yearly.period}</p>
             {plans.yearly.monthlyEquivalent && (
-              <p className="text-xs text-amora-300 font-medium">{plans.yearly.monthlyEquivalent}</p>
+              <p className="text-xs text-amora-600 font-medium">{plans.yearly.monthlyEquivalent}</p>
             )}
           </div>
           {selectedPlan === 'yearly' && (
@@ -176,7 +176,7 @@ export const PaymentCheckout: React.FC<PaymentCheckoutProps> = ({
       </div>
 
       {/* Features List */}
-      <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 border-slate-700 p-5">
+      <Card className="bg-slate-50 border-slate-200 p-5">
         <div className="space-y-3">
           {features.map((feature, index) => (
             <div
@@ -185,11 +185,11 @@ export const PaymentCheckout: React.FC<PaymentCheckoutProps> = ({
               style={{ animationDelay: `${index * 50}ms` }}
             >
               <div className="flex-shrink-0 mt-0.5">
-                <div className="w-5 h-5 rounded-full bg-green-500/20 border border-green-500/30 flex items-center justify-center">
-                  <CheckCircleIcon className="w-3.5 h-3.5 text-green-400" />
+                <div className="w-5 h-5 rounded-full bg-green-50 border border-green-200 flex items-center justify-center">
+                  <CheckCircleIcon className="w-3.5 h-3.5 text-green-600" />
                 </div>
               </div>
-              <span className="text-sm text-slate-200 leading-relaxed">{feature}</span>
+              <span className="text-sm text-slate-700 leading-relaxed">{feature}</span>
             </div>
           ))}
         </div>
@@ -198,7 +198,7 @@ export const PaymentCheckout: React.FC<PaymentCheckoutProps> = ({
       {/* Error Message */}
       {error && (
         <div
-          className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 text-sm text-red-400 text-center animate-in fade-in slide-in-from-top-4"
+          className="bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700 text-center animate-in fade-in slide-in-from-top-4"
           role="alert"
         >
           <div className="flex items-center justify-center gap-2">

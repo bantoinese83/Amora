@@ -22,35 +22,35 @@ export const ToastNotification: React.FC<ToastProps> = ({ toast, onClose }) => {
       case 'success':
         return {
           icon: CheckCircleIcon,
-          bg: 'bg-green-500/10',
-          border: 'border-green-500/30',
-          text: 'text-green-300',
-          iconColor: 'text-green-400',
+          bg: 'bg-green-50',
+          border: 'border-green-200',
+          text: 'text-green-700',
+          iconColor: 'text-green-600',
         };
       case 'error':
         return {
           icon: XCircleIcon,
-          bg: 'bg-red-500/10',
-          border: 'border-red-500/30',
-          text: 'text-red-300',
-          iconColor: 'text-red-400',
+          bg: 'bg-red-50',
+          border: 'border-red-200',
+          text: 'text-red-700',
+          iconColor: 'text-red-600',
         };
       case 'warning':
         return {
           icon: AlertIcon,
-          bg: 'bg-amber-500/10',
-          border: 'border-amber-500/30',
-          text: 'text-amber-300',
-          iconColor: 'text-amber-400',
+          bg: 'bg-amber-50',
+          border: 'border-amber-200',
+          text: 'text-amber-700',
+          iconColor: 'text-amber-600',
         };
       case 'info':
       default:
         return {
           icon: InfoIcon,
-          bg: 'bg-blue-500/10',
-          border: 'border-blue-500/30',
-          text: 'text-blue-300',
-          iconColor: 'text-blue-400',
+          bg: 'bg-blue-50',
+          border: 'border-blue-200',
+          text: 'text-blue-700',
+          iconColor: 'text-blue-600',
         };
     }
   };

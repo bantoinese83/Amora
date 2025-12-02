@@ -131,7 +131,7 @@ export const PostSessionSummary: React.FC = () => {
       <div className="text-center transform transition-all scale-100 opacity-100 overflow-y-auto flex-1 min-h-0">
         {/* Header Status */}
         <div className="mb-4">
-          <div className="w-14 h-14 bg-gradient-to-tr from-amora-500 to-pink-500 text-white rounded-full flex items-center justify-center mx-auto mb-3 border-4 border-slate-900 shadow-xl">
+          <div className="w-14 h-14 bg-amora-500 text-white rounded-full flex items-center justify-center mx-auto mb-3 border-4 border-white shadow-xl">
             {isLoading ? (
               <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
             ) : (
@@ -142,7 +142,7 @@ export const PostSessionSummary: React.FC = () => {
               </div>
             )}
           </div>
-          <h2 className="text-xl font-bold text-white">
+          <h2 className="text-xl font-bold text-slate-900">
             {isSaving
               ? 'Saving your conversation...'
               : isLoading
@@ -150,17 +150,17 @@ export const PostSessionSummary: React.FC = () => {
                 : analysis?.title || 'All done!'}
           </h2>
           <div className="flex items-center justify-center gap-2 mt-2">
-            <p className="text-slate-400 text-xs">
+            <p className="text-slate-600 text-xs">
               {formatDuration(session.durationSeconds)} • {session.transcript.length}{' '}
               {session.transcript.length === 1 ? 'exchange' : 'exchanges'}
             </p>
-            <span className="text-slate-600">•</span>
-            <div className="flex items-center gap-1.5 px-2 py-0.5 bg-slate-800/50 border border-slate-700 rounded-full">
-              <span className="text-[10px] text-slate-400 font-medium">Therapist</span>
-              <span className="text-slate-600">•</span>
-              <span className="text-[10px] text-slate-400 font-medium">Coach</span>
-              <span className="text-slate-600">•</span>
-              <span className="text-[10px] text-slate-400 font-medium">Journal</span>
+            <span className="text-slate-400">•</span>
+            <div className="flex items-center gap-1.5 px-2 py-0.5 bg-slate-100 border border-slate-200 rounded-full">
+              <span className="text-[10px] text-slate-600 font-medium">Therapist</span>
+              <span className="text-slate-400">•</span>
+              <span className="text-[10px] text-slate-600 font-medium">Coach</span>
+              <span className="text-slate-400">•</span>
+              <span className="text-[10px] text-slate-600 font-medium">Journal</span>
             </div>
           </div>
         </div>
@@ -192,7 +192,7 @@ export const PostSessionSummary: React.FC = () => {
         ) : !analysis ? (
           <div className="space-y-4 py-8 animate-in fade-in text-center">
             <Card className="p-4">
-              <p className="text-slate-300 text-sm">
+              <p className="text-slate-700 text-sm">
                 Session completed. View your conversation transcript below.
               </p>
             </Card>
@@ -205,36 +205,36 @@ export const PostSessionSummary: React.FC = () => {
                 <span className="text-xs text-slate-500 uppercase font-bold tracking-wider mb-1">
                   Vibe
                 </span>
-                <span className="font-semibold text-amora-300 text-sm">{analysis?.mood}</span>
+                <span className="font-semibold text-amora-600 text-sm">{analysis?.mood}</span>
               </Card>
               <Card className="p-3 flex flex-col justify-center">
                 <span className="text-xs text-slate-500 uppercase font-bold tracking-wider mb-1">
                   Summary
                 </span>
-                <p className="text-xs text-slate-300 leading-tight">{analysis?.summary}</p>
+                <p className="text-xs text-slate-700 leading-tight">{analysis?.summary}</p>
               </Card>
             </div>
 
             {/* Key Insight */}
-            <Card className="border-l-4 border-l-amora-500 bg-gradient-to-r from-amora-900/20 to-transparent p-3">
-              <h3 className="text-amora-200 font-semibold mb-1.5 text-xs">Key Insight</h3>
-              <p className="text-slate-200 italic text-xs leading-relaxed">
+            <Card className="border-l-4 border-l-amora-500 bg-amora-50 p-3">
+              <h3 className="text-amora-700 font-semibold mb-1.5 text-xs">Key Insight</h3>
+              <p className="text-slate-700 italic text-xs leading-relaxed">
                 "{analysis?.keyInsight}"
               </p>
             </Card>
 
             {/* Action Item */}
             <Card className="p-3">
-              <h3 className="text-green-400 font-semibold mb-1.5 text-xs flex items-center gap-2">
+              <h3 className="text-green-600 font-semibold mb-1.5 text-xs flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
                 Try This
               </h3>
-              <p className="text-slate-300 text-xs leading-relaxed">{analysis?.actionItem}</p>
+              <p className="text-slate-700 text-xs leading-relaxed">{analysis?.actionItem}</p>
             </Card>
 
             {/* Encouragement */}
             <div className="text-center py-3 px-2">
-              <p className="text-amora-100 font-medium text-sm leading-relaxed">
+              <p className="text-amora-700 font-medium text-sm leading-relaxed">
                 {analysis?.encouragement}
               </p>
             </div>
@@ -261,7 +261,7 @@ export const PostSessionSummary: React.FC = () => {
 
             {/* Full Transcript */}
             {showTranscript && (
-              <Card className="mt-4 max-h-96 overflow-y-auto bg-slate-900/50">
+              <Card className="mt-4 max-h-96 overflow-y-auto bg-slate-50">
                 <div ref={transcriptRef} className="space-y-4 p-4">
                   {session.transcript.map(msg => (
                     <MessageBubble key={msg.id} message={msg} />
@@ -273,7 +273,7 @@ export const PostSessionSummary: React.FC = () => {
         )}
 
         {/* Footer Actions */}
-        <div className="space-y-2 mt-4 pt-4 border-t border-slate-700/50">
+        <div className="space-y-2 mt-4 pt-4 border-t border-slate-200">
           <Button
             variant="white"
             onClick={() => closeModal('summary')}
@@ -289,10 +289,10 @@ export const PostSessionSummary: React.FC = () => {
               onClick={handleShare}
               fullWidth
               disabled={isLoading || isSharing}
-              className="flex items-center justify-center gap-2 bg-slate-800/30 hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed text-xs py-2"
+              className="flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed text-xs py-2"
             >
               {isSharing ? (
-                <div className="w-3 h-3 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" />
+                <div className="w-3 h-3 border-2 border-slate-600 border-t-transparent rounded-full animate-spin" />
               ) : (
                 <ShareIcon className="w-3 h-3" />
               )}
@@ -303,7 +303,7 @@ export const PostSessionSummary: React.FC = () => {
               variant="ghost"
               onClick={() => downloadTranscriptAsText(session)}
               fullWidth
-              className="flex items-center justify-center gap-2 bg-slate-800/30 hover:bg-slate-800 text-xs py-2"
+              className="flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-xs py-2"
             >
               <DownloadIcon className="w-3 h-3" />
               Conversation

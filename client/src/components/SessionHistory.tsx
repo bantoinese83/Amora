@@ -29,13 +29,13 @@ export const SessionHistory: React.FC = () => {
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[59]"
+        className="fixed inset-0 bg-white/80 backdrop-blur-sm z-[59]"
         onClick={() => closeModal('history')}
         aria-hidden="true"
       />
       {/* Sidebar */}
       <div
-        className="fixed inset-y-0 left-0 w-80 bg-slate-900 border-r border-slate-800 transform transition-transform duration-300 ease-in-out z-[60] translate-x-0"
+        className="fixed inset-y-0 left-0 w-80 bg-white border-r border-slate-200 transform transition-transform duration-300 ease-in-out z-[60] translate-x-0 shadow-xl"
         role="dialog"
         aria-label="Your Conversations"
       >
@@ -43,15 +43,15 @@ export const SessionHistory: React.FC = () => {
           <div className="flex justify-between items-center mb-6">
             <div className="flex flex-col gap-2">
               <div className="flex items-center gap-3">
-                <h2 className="text-xl font-bold text-white">Your Journal</h2>
+                <h2 className="text-xl font-bold text-slate-900">Your Journal</h2>
                 {!isPremium && (
                   <span
                     className={`px-2 py-0.5 border text-xs rounded-full transition-colors ${
                       sessions.length >= limits.maxSessions
-                        ? 'bg-red-500/10 border-red-500/30 text-red-300'
+                        ? 'bg-red-50 border-red-200 text-red-700'
                         : sessions.length >= limits.maxSessions - 1
-                          ? 'bg-amber-500/10 border-amber-500/30 text-amber-300'
-                          : 'bg-slate-800/50 border-slate-700 text-slate-400'
+                          ? 'bg-amber-50 border-amber-200 text-amber-700'
+                          : 'bg-slate-100 border-slate-200 text-slate-600'
                     }`}
                   >
                     {sessions.length}/{limits.maxSessions} sessions
@@ -64,7 +64,7 @@ export const SessionHistory: React.FC = () => {
             </div>
             <button
               onClick={() => closeModal('history')}
-              className="text-slate-400 hover:text-white focus:outline-none focus:text-white"
+              className="text-slate-400 hover:text-slate-900 focus:outline-none focus:text-slate-900"
               aria-label="Close History"
             >
               <XIcon />
@@ -85,7 +85,7 @@ export const SessionHistory: React.FC = () => {
               <div className="space-y-4 py-4">
                 {[1, 2, 3].map(i => (
                   <Card key={i} className="animate-pulse">
-                    <div className="h-20 bg-slate-800/50 rounded-lg"></div>
+                    <div className="h-20 bg-slate-200 rounded-lg"></div>
                   </Card>
                 ))}
               </div>
@@ -128,16 +128,16 @@ export const SessionHistory: React.FC = () => {
                   className="hover:border-amora-500/50 transition-colors cursor-pointer group relative"
                 >
                   <div className="flex justify-between items-start mb-2">
-                    <span className="text-sm text-amora-300 font-medium">
+                    <span className="text-sm text-amora-600 font-medium">
                       {formatDate(session.date)}
                     </span>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-slate-500 bg-slate-800 px-2 py-1 rounded-full">
+                      <span className="text-xs text-slate-600 bg-slate-100 border border-slate-200 px-2 py-1 rounded-full">
                         {formatDuration(session.durationSeconds)}
                       </span>
                       <button
                         onClick={e => handleDownload(e, session)}
-                        className="p-1.5 text-slate-500 hover:text-amora-300 hover:bg-slate-700 rounded-full transition-colors"
+                        className="p-1.5 text-slate-500 hover:text-amora-600 hover:bg-slate-100 rounded-full transition-colors"
                         title="Download Conversation"
                         aria-label={`Download conversation from ${formatDate(session.date)}`}
                       >
@@ -145,7 +145,7 @@ export const SessionHistory: React.FC = () => {
                       </button>
                     </div>
                   </div>
-                  <p className="text-slate-400 text-sm line-clamp-2 group-hover:text-slate-300">
+                  <p className="text-slate-600 text-sm line-clamp-2 group-hover:text-slate-900">
                     {session.preview}
                   </p>
                 </Card>

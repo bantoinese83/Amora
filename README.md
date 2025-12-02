@@ -83,7 +83,7 @@ Amora combines the best of therapy, coaching, and journaling into one powerful v
 - **Quick Actions Menu**: Command palette (Cmd+K/Ctrl+K) for efficient navigation
 - **Auto-retry Logic**: Intelligent reconnection with exponential backoff on connection errors
 - **Session Management**: 15-minute session duration with visual countdown and progress tracking
-- **Modern UI/UX**: Dark-themed interface with smooth animations and responsive design
+- **Modern UI/UX**: Light-themed minimalist interface with smooth animations and responsive design
 
 ### Technical Excellence
 

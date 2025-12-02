@@ -38,33 +38,33 @@ export const UpgradePrompt: React.FC<UpgradePromptProps> = ({
   };
 
   return (
-    <Card className="bg-gradient-to-r from-amora-900/50 to-pink-900/50 border-amora-500/50">
+    <Card className="bg-amora-50 border-amora-200">
       <div className="text-center space-y-4">
         <div>
-          <h3 className="text-lg font-bold text-white mb-1">Unlock Full Access</h3>
-          <p className="text-xs text-amora-300 mb-2 font-medium">Get the complete therapist, coach & journal experience</p>
-          <p className="text-slate-300 text-sm">{getMessage()}</p>
+          <h3 className="text-lg font-bold text-slate-900 mb-1">Unlock Full Access</h3>
+          <p className="text-xs text-amora-600 mb-2 font-medium">Get the complete therapist, coach & journal experience</p>
+          <p className="text-slate-700 text-sm">{getMessage()}</p>
         </div>
 
-        <div className="space-y-2.5 text-sm text-slate-300">
+        <div className="space-y-2.5 text-sm text-slate-700">
           <div className="flex items-center justify-center gap-2">
-            <span className="text-green-400 text-base">✓</span>
+            <span className="text-green-600 text-base">✓</span>
             <span className="font-medium">Unlimited therapy sessions</span>
           </div>
           <div className="flex items-center justify-center gap-2">
-            <span className="text-green-400 text-base">✓</span>
+            <span className="text-green-600 text-base">✓</span>
             <span className="font-medium">Extended sessions (up to 1 hour)</span>
           </div>
           <div className="flex items-center justify-center gap-2">
-            <span className="text-green-400 text-base">✓</span>
+            <span className="text-green-600 text-base">✓</span>
             <span className="font-medium">Unlimited coaching insights & analysis</span>
           </div>
           <div className="flex items-center justify-center gap-2">
-            <span className="text-green-400 text-base">✓</span>
+            <span className="text-green-600 text-base">✓</span>
             <span className="font-medium">Complete journal history & audio playback</span>
           </div>
           <div className="flex items-center justify-center gap-2">
-            <span className="text-green-400 text-base">✓</span>
+            <span className="text-green-600 text-base">✓</span>
             <span className="font-medium">Priority support</span>
           </div>
         </div>

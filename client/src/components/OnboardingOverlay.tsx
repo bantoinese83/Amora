@@ -115,14 +115,14 @@ export const OnboardingOverlay: React.FC = () => {
   return (
     <div className="fixed inset-0 z-[60] flex flex-col">
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] transition-opacity duration-500" />
+      <div className="absolute inset-0 bg-white/80 backdrop-blur-[2px] transition-opacity duration-500" />
 
       {/* Content Container */}
       <div className="relative w-full h-full pointer-events-none">
         {/* If targeting an element, draw a spotlight ring (optional visual flair) */}
         {!isCentered && position && (
           <div
-            className="absolute w-12 h-12 border-2 border-amora-400 rounded-full animate-ping opacity-75"
+            className="absolute w-12 h-12 border-2 border-amora-500 rounded-full animate-ping opacity-75"
             style={{
               top: position.placement === 'bottom' ? position.top - 44 : position.top + 44, // rough offset back to center of target
               left: position.left - 24,
@@ -133,7 +133,7 @@ export const OnboardingOverlay: React.FC = () => {
         <div
           className={`
                 pointer-events-auto absolute transition-all duration-500 ease-in-out
-                bg-slate-900 border border-slate-700 p-6 rounded-2xl shadow-2xl max-w-sm w-[90%]
+                bg-white border border-slate-200 p-6 rounded-2xl shadow-2xl max-w-sm w-[90%]
                 ${isCentered ? 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2' : ''}
             `}
           style={
@@ -148,19 +148,19 @@ export const OnboardingOverlay: React.FC = () => {
           }
         >
           <div className="flex justify-between items-start mb-4">
-            <span className="text-xs font-bold text-amora-400 uppercase tracking-wider">
+            <span className="text-xs font-bold text-amora-600 uppercase tracking-wider">
               Step {currentStep + 1} of {STEPS.length}
             </span>
             <button
               onClick={handleFinish}
-              className="text-slate-500 hover:text-white text-xs underline"
+              className="text-slate-500 hover:text-slate-900 text-xs underline"
             >
               Skip
             </button>
           </div>
 
-          <h3 className="text-xl font-bold text-white mb-2">{step.title}</h3>
-          <p className="text-slate-300 mb-6 leading-relaxed">{step.content}</p>
+          <h3 className="text-xl font-bold text-slate-900 mb-2">{step.title}</h3>
+          <p className="text-slate-600 mb-6 leading-relaxed">{step.content}</p>
 
           <div className="flex justify-end gap-3">
             <Button onClick={handleNext} fullWidth={false} className="px-6 py-2 text-sm">
@@ -171,7 +171,7 @@ export const OnboardingOverlay: React.FC = () => {
           {/* Arrow Tip */}
           {!isCentered && (
             <div
-              className={`absolute left-1/2 -translate-x-1/2 w-4 h-4 bg-slate-900 border-l border-t border-slate-700 transform rotate-45 ${
+              className={`absolute left-1/2 -translate-x-1/2 w-4 h-4 bg-white border-l border-t border-slate-200 transform rotate-45 ${
                 position?.placement === 'bottom' ? '-top-2.5' : '-bottom-2.5 rotate-[225deg]'
               }`}
             />

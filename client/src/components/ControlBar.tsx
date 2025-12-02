@@ -24,10 +24,10 @@ export const ControlBar: React.FC<ControlBarProps> = ({
       <button
         onClick={onToggleMute}
         aria-label={isMuted ? 'Unmute Microphone' : 'Mute Microphone'}
-        className={`p-4 rounded-full border transition-all ${
+        className={`p-4 rounded-full border transition-all backdrop-blur-sm ${
           isMuted
-            ? 'bg-red-500/20 border-red-500 text-red-500'
-            : 'bg-slate-800/50 border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white'
+            ? 'bg-red-50 border-red-300 text-red-600 hover:bg-red-100'
+            : 'bg-white/80 border-slate-200 text-slate-700 hover:bg-white hover:text-slate-900'
         }`}
       >
         {isMuted ? <MicOffIcon /> : <MicIcon />}
@@ -35,7 +35,7 @@ export const ControlBar: React.FC<ControlBarProps> = ({
       <button
         onClick={onDisconnect}
         aria-label="Finish Conversation"
-        className="p-4 rounded-full bg-red-500/20 border border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition-all"
+        className="p-4 rounded-full bg-red-50 border border-red-300 text-red-600 hover:bg-red-100 hover:text-red-700 transition-all backdrop-blur-sm"
       >
         <XIcon />
       </button>

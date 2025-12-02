@@ -1,7 +1,6 @@
 import React, { useEffect, useRef } from 'react';
-import { CloudVisualizer } from './CloudVisualizer';
+import { AmoraVisualizer } from './AmoraVisualizer';
 import { ConnectionStatus } from '../types';
-import { MicIcon } from './common/Icons';
 import { AudioData } from '../hooks/useVoiceClient';
 import { calculateBassEnergy } from '../utils/audioAnalysis';
 
@@ -107,35 +106,30 @@ export const VoiceOrb: React.FC<VoiceOrbProps> = ({
           transition-all duration-500 ease-out
           ${
             !isAuthenticated
-              ? 'bg-slate-900/50 border-4 border-slate-800 opacity-50 cursor-not-allowed'
+              ? 'opacity-50 cursor-not-allowed'
               : isConnected
-                ? 'bg-slate-900/90 border-2 border-amora-500/50 backdrop-blur-sm cursor-pointer'
-                : 'bg-slate-900 border-4 border-slate-700 hover:border-amora-400/50 hover:scale-105 cursor-pointer'
+                ? 'cursor-pointer'
+                : 'cursor-pointer'
           }
           ${isError ? 'border-red-500 shadow-red-500/20' : ''}
         `}
       >
-        {/* Layer 1: Mic Icon (Disconnected state) */}
+        {/* Layer 1: Spinner (Connecting state) */}
         <div
-          className={`absolute inset-0 flex items-center justify-center transition-all duration-500 ease-in-out ${!isConnected && !isConnecting ? 'opacity-100 scale-100' : 'opacity-0 scale-75 pointer-events-none'}`}
-        >
-          <div className="text-slate-400 group-hover:text-white transition-colors">
-            <MicIcon className="w-16 h-16" />
-          </div>
-        </div>
-
-        {/* Layer 2: Spinner (Connecting state) */}
-        <div
-          className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300 ${isConnecting ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+          className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300 z-20 ${isConnecting ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
         >
           <div className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin" />
         </div>
 
-        {/* Layer 3: Cloud Visualizer (Connected state) */}
+        {/* Layer 2: Amora Visualizer (Always visible, reacts to state) */}
         <div
-          className={`absolute inset-0 w-full h-full transition-opacity duration-700 ease-in-out ${isConnected ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+          className={`absolute inset-0 w-full h-full transition-opacity duration-700 ease-in-out ${!isConnecting ? 'opacity-100' : 'opacity-30'}`}
         >
-          <CloudVisualizer audioRef={audioRef} isActive={isConnected} />
+          <AmoraVisualizer
+            audioRef={audioRef}
+            isActive={isConnected}
+            onClick={isAuthenticated && !isConnected ? onClick : undefined}
+          />
         </div>
       </div>
     </div>

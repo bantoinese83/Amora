@@ -13,29 +13,29 @@ export const StatusIndicator: React.FC<StatusIndicatorProps> = ({ status, onRetr
         return {
           text: 'Ready',
           subtext: 'Tap orb to start',
-          containerClass: 'bg-slate-800/50 border-slate-700 text-slate-400',
-          indicatorClass: 'bg-slate-500',
+          containerClass: 'bg-white/80 border-slate-200 text-slate-600 backdrop-blur-sm',
+          indicatorClass: 'bg-slate-400',
         };
       case ConnectionStatus.CONNECTING:
         return {
           text: 'Getting ready...',
           subtext: 'Just a moment',
-          containerClass: 'bg-amber-500/10 border-amber-500/20 text-amber-200',
-          indicatorClass: 'bg-amber-400 animate-ping',
+          containerClass: 'bg-amber-50 border-amber-200 text-amber-700 backdrop-blur-sm',
+          indicatorClass: 'bg-amber-500 animate-ping',
         };
       case ConnectionStatus.CONNECTED:
         return {
           text: 'Amora is listening',
           subtext: 'Ready to talk',
           containerClass:
-            'bg-amora-500/10 border-amora-500/20 text-amora-200 shadow-[0_0_15px_rgba(139,92,246,0.15)]',
-          indicatorClass: 'bg-amora-400 animate-pulse',
+            'bg-amora-50 border-amora-200 text-amora-700 shadow-[0_0_15px_rgba(139,92,246,0.15)] backdrop-blur-sm',
+          indicatorClass: 'bg-amora-500 animate-pulse',
         };
       case ConnectionStatus.ERROR:
         return {
           text: 'Something went wrong',
           subtext: 'Tap to try again',
-          containerClass: 'bg-red-500/10 border-red-500/20 text-red-300',
+          containerClass: 'bg-red-50 border-red-200 text-red-600 backdrop-blur-sm',
           indicatorClass: 'bg-red-500',
         };
       default:

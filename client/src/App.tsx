@@ -1,11 +1,12 @@
 import React from 'react';
+import { useSpring } from '@react-spring/core';
+import { a } from '@react-spring/web';
 import { Header } from './components/Header';
-import { TranscriptViewer } from './components/TranscriptViewer';
-import { VoiceOrb } from './components/VoiceOrb';
 import { ControlBar } from './components/ControlBar';
-import { BackgroundGlow } from './components/BackgroundGlow';
 import { StatusIndicator } from './components/StatusIndicator';
 import { ModalManager } from './components/ModalManager';
+import { Overlay } from './components/Overlay';
+import { Scene } from './components/Scene';
 import { useApp } from './context/AppContext';
 import { useSessionWorkflow } from './hooks/useSessionWorkflow';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
@@ -31,6 +32,14 @@ export default function App() {
     formattedTime,
     showTimer,
   } = useSessionWorkflow();
+
+  // Spring for background and text color
+  const [{ background, fill }, setBg] = useSpring(
+    { background: '#f0f0f0', fill: '#202020' },
+    []
+  );
+
+  const isConnected = status === ConnectionStatus.CONNECTED;
 
   // Disconnect active session when user logs out
   React.useEffect(() => {
@@ -61,26 +70,23 @@ export default function App() {
   const quickActions = useQuickActions();
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-between p-4 relative overflow-hidden font-sans">
-      {/* Optimized Background Animation */}
-      <BackgroundGlow audioRef={audioDataRef} status={status} />
-
+    <a.main style={{ background }} className="relative">
       {/* Connection Error Alert */}
       {status === ConnectionStatus.ERROR && (
         <div className="absolute top-24 left-1/2 -translate-x-1/2 w-full max-w-md z-50 px-4">
-          <div className="bg-red-500/10 border border-red-500/50 rounded-xl p-4 flex items-start gap-3 backdrop-blur-md shadow-lg animate-in fade-in slide-in-from-top-4">
-            <div className="text-red-400 mt-0.5">
+          <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3 backdrop-blur-md shadow-lg animate-in fade-in slide-in-from-top-4">
+            <div className="text-red-600 mt-0.5">
               <AlertIcon className="w-5 h-5" />
             </div>
             <div className="flex-1">
-              <h3 className="text-red-200 font-semibold text-sm">Oops, something went wrong</h3>
-              <p className="text-red-300/80 text-xs mt-1">
+              <h3 className="text-red-700 font-semibold text-sm">Oops, something went wrong</h3>
+              <p className="text-red-600/80 text-xs mt-1">
                 We're having trouble connecting. Please check your internet and try again.
               </p>
             </div>
             <button
               onClick={reset}
-              className="text-red-400 hover:text-red-200 transition-colors p-1"
+              className="text-red-600 hover:text-red-700 transition-colors p-1"
               aria-label="Close"
             >
               <XIcon className="w-4 h-4" />
@@ -90,67 +96,55 @@ export default function App() {
       )}
 
       {/* Header */}
-      <Header
-        onHistoryClick={() => openModal('history')}
-        onSettingsClick={() => openModal('settings')}
-        onAuthClick={() => openModal('auth')}
-        authState={authState}
-        showTimer={showTimer}
-        formattedTime={formattedTime}
-      />
+      <div className="absolute top-0 left-0 right-0 z-50">
+        <Header
+          onHistoryClick={() => openModal('history')}
+          onSettingsClick={() => openModal('settings')}
+          onAuthClick={() => openModal('auth')}
+          authState={authState}
+          showTimer={showTimer}
+          formattedTime={formattedTime}
+        />
+      </div>
 
-      {/* Main Visual Interface */}
-      <main className="flex-1 flex flex-col items-center justify-center w-full max-w-2xl z-10 gap-8 min-h-[400px]">
-        <TranscriptViewer transcripts={transcripts} status={status} />
+      {/* Split Screen Layout */}
+      <main className="flex flex-row w-full h-screen">
+        <Overlay fill={fill} transcripts={transcripts} />
+        <Scene
+          audioRef={audioDataRef}
+          isActive={isConnected}
+          onClick={authState.isAuthenticated ? toggleSession : undefined}
+          setBg={setBg}
+        />
+      </main>
 
-        <div className="flex flex-col items-center gap-8">
-          <VoiceOrb
+      {/* Controls Footer - Floating */}
+      {isConnected && (
+        <footer className="absolute bottom-8 left-1/2 -translate-x-1/2 z-40">
+          <ControlBar
             status={status}
-            audioRef={audioDataRef}
-            onClick={toggleSession}
-            isAuthenticated={authState.isAuthenticated}
+            isMuted={isMuted}
+            onToggleMute={toggleMute}
+            onDisconnect={toggleSession}
           />
+        </footer>
+      )}
+
+      {/* Status Indicator - Floating */}
+      {!isConnected && (
+        <div className="absolute bottom-32 left-1/2 -translate-x-1/2 z-40">
           <StatusIndicator
             status={status}
             {...(status === ConnectionStatus.ERROR ? { onRetry: toggleSession } : {})}
           />
-          {!authState.isAuthenticated && (
-            <p className="text-sm text-slate-500 text-center animate-in fade-in">
-              Sign in to start your therapy, coaching, or journaling session
-            </p>
-          )}
         </div>
-      </main>
-
-      {/* Controls Footer */}
-      <footer className="w-full max-w-lg z-10 pb-8 min-h-[88px]">
-        <ControlBar
-          status={status}
-          isMuted={isMuted}
-          onToggleMute={toggleMute}
-          onDisconnect={toggleSession}
-        />
-        <div className="text-center mt-4 space-y-2">
-          <div className="text-xs text-slate-600 opacity-0 hover:opacity-100 transition-opacity select-none">
-            Shortcuts: Space to Mute • Esc to Disconnect
-          </div>
-          {authState.isAuthenticated && (
-            <div className="flex items-center justify-center gap-1.5 text-[10px] text-slate-700 opacity-60">
-              <span className="font-medium">Therapist</span>
-              <span>•</span>
-              <span className="font-medium">Coach</span>
-              <span>•</span>
-              <span className="font-medium">Journal</span>
-            </div>
-          )}
-        </div>
-      </footer>
+      )}
 
       {/* Global Modals Manager */}
       <ModalManager />
 
       {/* Quick Actions Menu (Command Palette) */}
       <QuickActionsMenu isOpen={quickActions.isOpen} onClose={quickActions.close} />
-    </div>
+    </a.main>
   );
 }

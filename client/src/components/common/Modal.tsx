@@ -50,7 +50,7 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, classNa
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-white/80 backdrop-blur-sm p-4 animate-in fade-in"
       onClick={e => {
         if (e.target === e.currentTarget && onClose) {
           onClose();
@@ -61,12 +61,12 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, classNa
     >
       <div
         ref={modalRef}
-        className={`bg-slate-900 border border-slate-700 p-6 rounded-2xl shadow-2xl relative animate-in fade-in slide-in-from-bottom-4 max-h-[90vh] overflow-y-auto ${className}`}
+        className={`bg-white border border-slate-200 p-8 rounded-2xl shadow-xl relative animate-in fade-in slide-in-from-bottom-4 max-h-[90vh] overflow-y-auto ${className}`}
       >
         {onClose && (
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-amora-500 rounded-lg p-1"
+            className="absolute top-4 right-4 text-slate-400 hover:text-slate-900 transition-colors focus:outline-none focus:ring-2 focus:ring-amora-500 rounded-lg p-1"
             aria-label="Close"
           >
             <XIcon />

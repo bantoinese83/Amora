@@ -391,7 +391,7 @@ export const AuthPaymentModal: React.FC = () => {
           />
         ) : mode === 'email' ? (
           <div className="text-center">
-            <div className="w-16 h-16 bg-gradient-to-tr from-amora-500 to-pink-500 rounded-full mx-auto mb-4 flex items-center justify-center">
+            <div className="w-16 h-16 bg-amora-500 rounded-full mx-auto mb-4 flex items-center justify-center">
               <svg
                 className="w-8 h-8 text-white"
                 fill="none"
@@ -406,23 +406,23 @@ export const AuthPaymentModal: React.FC = () => {
                 />
               </svg>
             </div>
-            <h2 className="text-2xl font-bold text-white mb-2">Welcome to Amora</h2>
-            <p className="text-slate-400 mb-3">
+            <h2 className="text-2xl font-bold text-slate-900 mb-2">Welcome to Amora</h2>
+            <p className="text-slate-600 mb-3">
               A therapist, coach, and journal in one app. Enter your email to get started.
             </p>
-            <div className="flex items-center justify-center gap-2 mb-6 px-3 py-1.5 bg-slate-800/50 border border-slate-700 rounded-full w-fit mx-auto">
-              <span className="text-[10px] text-slate-300 font-medium">🛋️ Therapist</span>
-              <span className="text-slate-600">•</span>
-              <span className="text-[10px] text-slate-300 font-medium">🎯 Coach</span>
-              <span className="text-slate-600">•</span>
-              <span className="text-[10px] text-slate-300 font-medium">📔 Journal</span>
+            <div className="flex items-center justify-center gap-2 mb-6 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-full w-fit mx-auto">
+              <span className="text-[10px] text-slate-600 font-medium">🛋️ Therapist</span>
+              <span className="text-slate-400">•</span>
+              <span className="text-[10px] text-slate-600 font-medium">🎯 Coach</span>
+              <span className="text-slate-400">•</span>
+              <span className="text-[10px] text-slate-600 font-medium">📔 Journal</span>
             </div>
 
             <form onSubmit={handleEmailSubmit} className="space-y-4">
               <div>
                 <label
                   htmlFor="auth-email"
-                  className="block text-sm font-medium text-slate-300 mb-2"
+                  className="block text-sm font-medium text-slate-700 mb-2"
                 >
                   Email Address
                 </label>
@@ -439,10 +439,10 @@ export const AuthPaymentModal: React.FC = () => {
                       setAuthError(null);
                     }
                   }}
-                  className={`w-full bg-slate-800 border rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 transition-colors ${
+                  className={`w-full bg-white border rounded-lg px-4 py-3 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 transition-colors ${
                     authError && email.trim() === ''
-                      ? 'border-red-500 focus:ring-red-500'
-                      : 'border-slate-700 focus:ring-amora-500 focus:border-amora-500'
+                      ? 'border-red-300 focus:ring-red-500'
+                      : 'border-slate-300 focus:ring-amora-500 focus:border-amora-500'
                   }`}
                   required
                   autoComplete="email"
@@ -475,7 +475,7 @@ export const AuthPaymentModal: React.FC = () => {
           </div>
         ) : (
           <div className="text-center">
-            <div className="w-16 h-16 bg-gradient-to-tr from-amora-500 to-pink-500 rounded-full mx-auto mb-4 flex items-center justify-center">
+            <div className="w-16 h-16 bg-amora-500 rounded-full mx-auto mb-4 flex items-center justify-center">
               <svg
                 className="w-8 h-8 text-white"
                 fill="none"
@@ -490,10 +490,10 @@ export const AuthPaymentModal: React.FC = () => {
                 />
               </svg>
             </div>
-            <h2 className="text-2xl font-bold text-white mb-2">Enter Your PIN</h2>
-            <p className="text-slate-400 mb-4 break-words">{email}</p>
+            <h2 className="text-2xl font-bold text-slate-900 mb-2">Enter Your PIN</h2>
+            <p className="text-slate-600 mb-4 break-words">{email}</p>
             <div className="mb-4">
-              <label htmlFor="auth-name" className="block text-sm font-medium text-slate-300 mb-2">
+              <label htmlFor="auth-name" className="block text-sm font-medium text-slate-700 mb-2">
                 Your Name <span className="text-slate-500 text-xs">(for new accounts)</span>
               </label>
               <input
@@ -509,10 +509,10 @@ export const AuthPaymentModal: React.FC = () => {
                     setAuthError(null);
                   }
                 }}
-                className={`w-full bg-slate-800 border rounded-lg px-4 py-2 text-white placeholder-slate-500 focus:outline-none focus:ring-2 transition-colors mb-2 ${
+                className={`w-full bg-white border rounded-lg px-4 py-2 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 transition-colors mb-2 ${
                   authError && name.trim() === ''
-                    ? 'border-red-500 focus:ring-red-500'
-                    : 'border-slate-700 focus:ring-amora-500 focus:border-amora-500'
+                    ? 'border-red-300 focus:ring-red-500'
+                    : 'border-slate-300 focus:ring-amora-500 focus:border-amora-500'
                 }`}
                 autoComplete="name"
                 disabled={isLoading}
@@ -527,7 +527,7 @@ export const AuthPaymentModal: React.FC = () => {
               )}
               <p className="text-xs text-slate-500 mt-1">Existing users can leave this blank.</p>
             </div>
-            <p className="text-slate-400 mb-8">Enter your 4-digit PIN to continue</p>
+            <p className="text-slate-600 mb-8">Enter your 4-digit PIN to continue</p>
 
             <div
               className="flex justify-center gap-4 mb-6"
@@ -559,8 +559,8 @@ export const AuthPaymentModal: React.FC = () => {
                       handleAuth();
                     }
                   }}
-                  className={`w-14 h-16 bg-slate-800 border-2 rounded-xl text-center text-2xl font-bold text-white focus:outline-none focus:border-amora-500 transition-all duration-200 ${
-                    error || authError ? 'border-red-500 animate-shake' : 'border-slate-600'
+                  className={`w-14 h-16 bg-white border-2 rounded-xl text-center text-2xl font-bold text-slate-900 focus:outline-none focus:border-amora-500 transition-all duration-200 ${
+                    error || authError ? 'border-red-300 animate-shake' : 'border-slate-300'
                   }`}
                   aria-label={`PIN digit ${idx + 1} of 4`}
                   autoComplete="one-time-code"
@@ -612,7 +612,7 @@ export const AuthPaymentModal: React.FC = () => {
                   resetPin();
                 }
               }}
-              className="text-sm text-slate-400 hover:text-slate-300 mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="text-sm text-slate-500 hover:text-slate-700 mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={isLoading || authInProgress.current}
             >
               ← Back to email
@@ -663,11 +663,11 @@ export const AuthPaymentModal: React.FC = () => {
       ) : isPremium ? (
         // Authenticated and Premium - Show subscription management
         <div className="text-center">
-          <div className="w-16 h-16 bg-gradient-to-tr from-amora-500 to-pink-500 rounded-full mx-auto mb-4 flex items-center justify-center text-2xl font-bold text-white">
+          <div className="w-16 h-16 bg-amora-500 rounded-full mx-auto mb-4 flex items-center justify-center text-2xl font-bold text-white">
             {authState.user?.name?.charAt(0) || 'U'}
           </div>
-          <h2 className="text-2xl font-bold text-white mb-1">Amora Premium</h2>
-          <div className="badge bg-amora-900/50 text-amora-300 px-3 py-1 rounded-full text-xs font-medium inline-block mb-6 border border-amora-700">
+          <h2 className="text-2xl font-bold text-slate-900 mb-1">Amora Premium</h2>
+          <div className="badge bg-amora-50 text-amora-700 px-3 py-1 rounded-full text-xs font-medium inline-block mb-6 border border-amora-200">
             Active Plan
           </div>
 
@@ -681,19 +681,19 @@ export const AuthPaymentModal: React.FC = () => {
             <Card className="text-left mb-6">
               {subscriptionDetails.paymentMethod && (
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-slate-300">Payment Method</span>
-                  <span className="text-white font-mono">{subscriptionDetails.paymentMethod}</span>
+                  <span className="text-slate-600">Payment Method</span>
+                  <span className="text-slate-900 font-mono">{subscriptionDetails.paymentMethod}</span>
                 </div>
               )}
               {subscriptionDetails.nextBilling && (
                 <div className="flex justify-between items-center">
-                  <span className="text-slate-300">Next Billing</span>
-                  <span className="text-white">{subscriptionDetails.nextBilling}</span>
+                  <span className="text-slate-600">Next Billing</span>
+                  <span className="text-slate-900">{subscriptionDetails.nextBilling}</span>
                 </div>
               )}
               {!subscriptionDetails.paymentMethod && !subscriptionDetails.nextBilling && (
                 <div className="text-center py-2">
-                  <p className="text-slate-400 text-sm">
+                  <p className="text-slate-500 text-sm">
                     Subscription details will appear after your first payment
                   </p>
                 </div>

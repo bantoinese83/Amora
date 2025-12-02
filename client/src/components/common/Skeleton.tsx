@@ -15,7 +15,7 @@ export const Skeleton: React.FC<SkeletonProps> = ({
   height,
   animated = true,
 }) => {
-  const baseClasses = 'bg-slate-800/50 rounded';
+  const baseClasses = 'bg-slate-200 rounded';
   const variantClasses = {
     text: 'h-4 rounded',
     circular: 'rounded-full',
