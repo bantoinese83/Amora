@@ -12,6 +12,7 @@ import {
   getSessions,
   createSession as createSessionAPI,
   updateSession as updateSessionAPI,
+  deleteSession as deleteSessionAPI,
 } from '../services/sessionService';
 import { preferencesRepository } from '@shared/repositories/preferencesRepository';
 import { getUser, type User } from '../services/authService';
@@ -56,6 +57,7 @@ interface AppContextType {
     audioChunks?: AudioChunk[]
   ) => Promise<Session | null>;
   updateSession: (id: string, updates: Partial<Session>) => Promise<void>;
+  deleteSession: (id: string) => Promise<void>;
   refreshSessions: () => Promise<void>;
 
   // Toasts
@@ -456,6 +458,32 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     [currentUserId]
   );
 
+  const deleteSession = useCallback(
+    async (id: string) => {
+      if (!currentUserId) {
+        throw new Error('User must be logged in to delete sessions');
+      }
+
+      try {
+        await deleteSessionAPI(currentUserId, id);
+        // Remove from local state immediately for responsive UI
+        setSessions(prev => prev.filter(s => s.id !== id));
+        showToast('Session deleted successfully', 'success');
+      } catch (error) {
+        logger.error(
+          'Failed to delete session',
+          { userId: currentUserId, sessionId: id },
+          error instanceof Error ? error : undefined
+        );
+        const errorMessage =
+          error instanceof Error ? error.message : "We couldn't delete this conversation. Please try again.";
+        showToast(errorMessage, 'error');
+        throw error;
+      }
+    },
+    [currentUserId, showToast]
+  );
+
   const refreshSessions = useCallback(async () => {
     if (!currentUserId) {
       return;
@@ -479,6 +507,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         isLoadingSessions,
         saveNewSession,
         updateSession,
+        deleteSession,
         refreshSessions,
         toasts,
         showToast,

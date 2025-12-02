@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { XIcon, DownloadIcon } from './common/Icons';
+import { XIcon, DownloadIcon, TrashIcon } from './common/Icons';
 import { formatDuration, formatDate } from '../utils/formatters';
 import { Card } from './common/Card';
 import { downloadTranscriptAsText } from '../utils/fileUtils';
@@ -10,7 +10,9 @@ import { getSubscriptionLimits } from '../services/subscriptionService';
 import { EmptyState } from './common/EmptyState';
 
 export const SessionHistory: React.FC = () => {
-  const { sessions, modals, closeModal, openModal, authState, isLoadingSessions } = useApp();
+  const { sessions, modals, closeModal, openModal, authState, isLoadingSessions, deleteSession } = useApp();
+  const [confirmingDelete, setConfirmingDelete] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState<string | null>(null);
   const isPremium = authState.user?.isPremium || false;
   const limits = getSubscriptionLimits(isPremium);
 
@@ -20,11 +22,38 @@ export const SessionHistory: React.FC = () => {
   };
 
   const handleSessionClick = (session: Session) => {
+    // Don't open summary if confirming delete
+    if (confirmingDelete === session.id) {
+      return;
+    }
     closeModal('history');
     // Small delay to ensure history modal closes before summary opens
     setTimeout(() => {
       openModal('summary', session);
     }, 100);
+  };
+
+  const handleDeleteClick = (e: React.MouseEvent, session: Session) => {
+    e.stopPropagation();
+    setConfirmingDelete(session.id);
+  };
+
+  const handleCancelDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setConfirmingDelete(null);
+  };
+
+  const handleConfirmDelete = async (e: React.MouseEvent, session: Session) => {
+    e.stopPropagation();
+    setDeleting(session.id);
+    try {
+      await deleteSession(session.id);
+      setConfirmingDelete(null);
+    } catch (error) {
+      // Error is handled by deleteSession and shown via toast
+    } finally {
+      setDeleting(null);
+    }
   };
 
   if (!modals.history) return null;
@@ -129,7 +158,9 @@ export const SessionHistory: React.FC = () => {
                 <Card
                   key={session.id}
                   onClick={() => handleSessionClick(session)}
-                  className="hover:border-amora-500/50 transition-colors cursor-pointer group relative"
+                  className={`hover:border-amora-500/50 transition-colors ${
+                    confirmingDelete === session.id ? 'border-red-300' : 'cursor-pointer'
+                  } group relative`}
                 >
                   <div className="flex justify-between items-start mb-2">
                     <span className="text-sm text-amora-600 font-medium">
@@ -139,14 +170,47 @@ export const SessionHistory: React.FC = () => {
                       <span className="text-xs text-slate-600 bg-slate-100 border border-slate-200 px-2 py-1 rounded-full">
                         {formatDuration(session.durationSeconds)}
                       </span>
-                      <button
-                        onClick={e => handleDownload(e, session)}
-                        className="p-1.5 text-slate-500 hover:text-amora-600 hover:bg-slate-100 rounded-full transition-colors"
-                        title="Download Conversation"
-                        aria-label={`Download conversation from ${formatDate(session.date)}`}
-                      >
-                        <DownloadIcon className="w-4 h-4" />
-                      </button>
+                      {confirmingDelete === session.id ? (
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={e => handleConfirmDelete(e, session)}
+                            disabled={deleting === session.id}
+                            className="px-2 py-1 text-xs font-medium text-white bg-red-500 hover:bg-red-600 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            title="Confirm Delete"
+                            aria-label="Confirm delete"
+                          >
+                            {deleting === session.id ? '...' : 'Yes'}
+                          </button>
+                          <button
+                            onClick={e => handleCancelDelete(e)}
+                            disabled={deleting === session.id}
+                            className="px-2 py-1 text-xs font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            title="Cancel"
+                            aria-label="Cancel delete"
+                          >
+                            No
+                          </button>
+                        </div>
+                      ) : (
+                        <>
+                          <button
+                            onClick={e => handleDownload(e, session)}
+                            className="p-1.5 text-slate-500 hover:text-amora-600 hover:bg-slate-100 rounded-full transition-colors"
+                            title="Download Conversation"
+                            aria-label={`Download conversation from ${formatDate(session.date)}`}
+                          >
+                            <DownloadIcon className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={e => handleDeleteClick(e, session)}
+                            className="p-1.5 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
+                            title="Delete Session"
+                            aria-label={`Delete session from ${formatDate(session.date)}`}
+                          >
+                            <TrashIcon className="w-4 h-4" />
+                          </button>
+                        </>
+                      )}
                     </div>
                   </div>
                   <p className="text-slate-600 text-sm line-clamp-2 group-hover:text-slate-900">
